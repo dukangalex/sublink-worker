@@ -6,6 +6,8 @@ export function parseTrojan(url) {
     const { host, port } = parseServerInfo(serverInfo);
 
     const parsedURL = parseServerInfo(addressPart);
+    // Trojan requires TLS by protocol design
+    if (!params.security) params.security = 'tls';
     const tls = createTlsConfig(params);
     const transport = params.type !== 'tcp' ? createTransportConfig(params) : undefined;
     return {
@@ -14,7 +16,6 @@ export function parseTrojan(url) {
         server: host,
         server_port: port,
         password: decodeURIComponent(password) || parsedURL.username,
-        network: 'tcp',
         tcp_fast_open: false,
         tls,
         transport,

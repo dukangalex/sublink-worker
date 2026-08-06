@@ -6,6 +6,8 @@ import { addProxyWithDedup } from './helpers/proxyHelpers.js';
 import { buildSelectorMembers as buildSelectorMemberList, buildNodeSelectMembers, buildCustomRuleMembers, uniqueNames } from './helpers/groupBuilder.js';
 import { normalizeGroupName } from './helpers/groupNameUtils.js';
 
+const RULE_SET_HTTP_CLIENT_TAG = 'rule-set-download';
+
 export class SingboxConfigBuilder extends BaseConfigBuilder {
     constructor(inputString, selectedRules, customRules, baseConfig, lang, userAgent, groupByCountry = false, enableClashUI = false, externalController, externalUiDownloadUrl, singboxVersion = '1.12', includeAutoSelect = true) {
         const resolvedBaseConfig = baseConfig ?? SING_BOX_CONFIG;
@@ -18,7 +20,7 @@ export class SingboxConfigBuilder extends BaseConfigBuilder {
         this.enableClashUI = enableClashUI;
         this.externalController = externalController;
         this.externalUiDownloadUrl = externalUiDownloadUrl;
-        this.singboxVersion = singboxVersion;  // '1.11' or '1.12'
+        this.singboxVersion = singboxVersion;  // '1.11', '1.12' or '1.14'
 
         if (this.config?.dns?.servers?.length > 0) {
             this.config.dns.servers[0].detour = this.t('outboundNames.Node Select');
@@ -98,10 +100,12 @@ export class SingboxConfigBuilder extends BaseConfigBuilder {
         // Create a shallow copy to avoid mutating the original
         const sanitized = { ...proxy };
 
-        // Remove Clash-specific fields that are not valid in sing-box outbound configuration
-        // In sing-box, UDP is controlled by 'network' field (defaults to both tcp and udp)
-        // The 'udp: true/false' field is a Clash/Clash Meta specific setting
+        // Strip Clash-only / mis-typed fields that conflict with sing-box semantics.
+        // `udp` is Clash-only. Top-level `network` in sing-box is a TCP/UDP allowlist
+        // (NetworkList in option/types.go); a stray "tcp" silently disables UDP for
+        // every group that selects this node — including DNS hijack and fakeip.
         delete sanitized.udp;
+        delete sanitized.network;
 
         // Remove 'alpn' from root level - it should only exist inside 'tls' object for sing-box
         // For protocols like vless/vmess, alpn belongs inside the tls configuration
@@ -483,11 +487,37 @@ export class SingboxConfigBuilder extends BaseConfigBuilder {
         return { outbound: this.t(`outboundNames.${rule.outbound}`) };
     }
 
+    /**
+     * Pin remote rule-set downloads to DIRECT so fetching never depends on a
+     * proxy that may not be up yet (issue #408). sing-box 1.14 deprecates both
+     * the implicit default HTTP client and the download_detour field (removed
+     * in 1.16, issue #401), so >=1.14 gets an explicit shared HTTP client
+     * while older versions get the legacy per-rule-set field.
+     */
+    configureRuleSetDownload() {
+        if (this.singboxVersion === '1.14') {
+            if (this.config.route.default_http_client) {
+                return;
+            }
+            if (!Array.isArray(this.config.http_clients) || this.config.http_clients.length === 0) {
+                this.config.http_clients = [{ tag: RULE_SET_HTTP_CLIENT_TAG, detour: 'DIRECT' }];
+            }
+            this.config.route.default_http_client = this.config.http_clients[0].tag;
+            return;
+        }
+        this.config.route.rule_set.forEach(ruleSet => {
+            if (ruleSet?.type === 'remote' && !ruleSet.download_detour) {
+                ruleSet.download_detour = 'DIRECT';
+            }
+        });
+    }
+
     formatConfig() {
         const rules = generateRules(this.selectedRules, this.customRules);
         const { site_rule_sets, ip_rule_sets } = generateRuleSets(this.selectedRules, this.customRules);
 
         this.config.route.rule_set = [...site_rule_sets, ...ip_rule_sets];
+        this.configureRuleSetDownload();
 
         // Add outbound_providers if we have any
         if (this.providerUrls.length > 0) {
@@ -559,11 +589,15 @@ export class SingboxConfigBuilder extends BaseConfigBuilder {
             }, rule));
         });
 
+        // Order matters: sniff first so downstream rules can match on protocol;
+        // hijack-dns before clash_mode so DNS never escapes into a selector when
+        // the user toggles global mode (selectors only support TCP+UDP if the
+        // currently selected node does, which is fragile).
         this.config.route.rules.unshift(
-            { clash_mode: 'direct', outbound: 'DIRECT' },
-            { clash_mode: 'global', outbound: this.t('outboundNames.Node Select') },
             { action: 'sniff' },
-            { protocol: 'dns', action: 'hijack-dns' }
+            { protocol: 'dns', action: 'hijack-dns' },
+            { clash_mode: 'direct', outbound: 'DIRECT' },
+            { clash_mode: 'global', outbound: this.t('outboundNames.Node Select') }
         );
 
         this.config.route.auto_detect_interface = true;
