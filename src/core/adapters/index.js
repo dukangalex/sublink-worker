@@ -18,9 +18,22 @@ const singBoxFeatures = {
     'transport.xhttp': false,
     'transport.mkcp': false,
     'transport.domainsocket': false,
-    'multiplex': true,
-    'packet_encoding': true,
-    'udp_over_stream': true
+    multiplex: true,
+    packet_encoding: true,
+    udp_over_stream: true
+};
+
+const clashFeatures = {
+    tls: true,
+    'tls.utls': true,
+    'tls.reality': true,
+    'transport.http': true,
+    'transport.ws': true,
+    'transport.h2': true,
+    'transport.grpc': true,
+    'transport.xhttp': true,
+    multiplex: true,
+    packet_encoding: true
 };
 
 for (const protocol of protocols) {
@@ -28,6 +41,12 @@ for (const protocol of protocols) {
         adapter: 'generic',
         features: singBoxFeatures
     });
+
+    declareCapability(protocol, 'clash', {
+        adapter: 'mihomo',
+        features: clashFeatures
+    });
 }
 
 export { toSingBox } from './singbox.js';
+export { toClash } from './clash.js';
