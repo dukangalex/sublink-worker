@@ -301,3 +301,63 @@ test('Xray rejects removed mKCP fields instead of dropping them', () => {
         /Current Xray mKCP no longer supports read\/write buffers/
     );
 });
+
+
+test('Xray maps canonical XHTTP fields to current camelCase keys and xmux', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'xhttp',
+        xhttp_opts: {
+            mode: 'stream-one',
+            path: '/xhttp',
+            host: 'cdn.example.com',
+            'no-grpc-header': true,
+            'x-padding-bytes': '100-200',
+            'uplink-http-method': 'PUT',
+            'session-placement': 'cookie',
+            'session-key': 'sid',
+            'session-table': 'Base62',
+            'session-length': '16-32',
+            'reuse-settings': {
+                'max-concurrency': '16-32',
+                'h-max-reusable-secs': '1800-3000'
+            }
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.xhttpSettings, {
+        path: '/xhttp',
+        host: 'cdn.example.com',
+        mode: 'stream-one',
+        noGRPCHeader: true,
+        xPaddingBytes: '100-200',
+        uplinkHTTPMethod: 'PUT',
+        sessionIDPlacement: 'cookie',
+        sessionIDKey: 'sid',
+        sessionIDTable: 'Base62',
+        sessionIDLength: '16-32',
+        xmux: {
+            maxConcurrency: '16-32',
+            hMaxReusableSecs: '1800-3000'
+        }
+    });
+});
+
+test('Xray refuses incomplete XHTTP downloadSettings instead of silently dropping it', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'xhttp',
+        xhttp_opts: {
+            'download-settings': {
+                path: '/download',
+                host: 'cdn.example.com'
+            }
+        }
+    });
+
+    assert.throws(
+        () => toXray(node),
+        /downloadSettings requires a complete nested StreamConfig/
+    );
+});
