@@ -65,19 +65,28 @@ function buildStreamSettings(node) {
     const tls = node.tls;
     const reality = node.reality;
     const out = {};
+
+    if (t.type) {
+        const type = String(t.type).toLowerCase();
+        const network = type === 'ws' ? 'websocket' : type === 'mkcp' ? 'mkcp' : type;
+        out.network = network;
+        if (network === 'websocket') out.wsSettings = pick(t, ['path', 'headers', 'host']);
+        if (network === 'grpc') out.grpcSettings = pick(t, ['serviceName', 'multiMode']);
+        if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
+        if (network === 'xhttp') out.xhttpSettings = pick(t, [
+            'host', 'path', 'mode', 'noSSEHeader', 'xPaddingBytes', 'xPaddingObfsMode',
+            'xPaddingKey', 'xPaddingPlacement', 'xPaddingMethod', 'uplinkHTTPMethod',
+            'sessionPlacement', 'sessionKey', 'sessionTable', 'sessionLength'
+        ]);
+        if (network === 'mkcp') out.kcpSettings = pick(t, ['mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity', 'congestion', 'readBufferSize', 'writeBufferSize', 'header', 'seed']);
+        if (network === 'hysteria') out.hysteriaSettings = pick(t, ['version', 'auth', 'up_mbps', 'down_mbps']);
+    }
+
     if (node.protocol === 'hysteria2') {
         out.network = 'hysteria';
-        out.method = 'hysteria';
         out.hysteriaSettings = { version: 2, auth: node.credentials?.password };
-    } else if (t.type) {
-        const network = t.type === 'ws' ? 'ws' : t.type === 'grpc' ? 'grpc' : t.type === 'httpupgrade' ? 'httpupgrade' : t.type === 'mkcp' ? 'kcp' : t.type === 'xhttp' ? 'xhttp' : 'tcp';
-        out.network = network;
-        if (network === 'ws') out.wsSettings = pick(t, ['path', 'headers']);
-        if (network === 'grpc') out.grpcSettings = pick(t, ['serviceName', 'multiMode']);
-        if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path']);
-        if (network === 'xhttp') out.xhttpSettings = { ...t };
-        if (network === 'kcp') out.kcpSettings = { ...t };
     }
+
     if (tls || reality) {
         out.security = reality ? 'reality' : 'tls';
         if (reality) {
