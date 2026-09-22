@@ -1,5 +1,6 @@
 import { normalizeProxy } from './normalizeProxy.js';
 import { validateProxyNode } from './validateProxyNode.js';
+import { explainConversion } from './capabilityMatrix.js';
 import { toSingBox } from './adapters/singbox.js';
 import { toClash } from './adapters/clash.js';
 import { toXray } from './adapters/xray.js';
@@ -23,7 +24,9 @@ export function convertProxy(input, target, options = {}) {
         return fail(target, normalized, validation.errors, validation.warnings, options);
     }
 
-    const adapter = ADAPTERS[String(target || '').toLowerCase()];
+    const targetName = String(target || '').toLowerCase();
+    const capability = explainConversion(normalized, targetName);
+    const adapter = ADAPTERS[targetName];
     if (!adapter) {
         return fail(target, normalized, [`Unsupported target: ${target}`], validation.warnings, options);
     }
@@ -34,10 +37,12 @@ export function convertProxy(input, target, options = {}) {
             target: String(target).toLowerCase(),
             node: normalized,
             output: adapter(normalized),
-            warnings: validation.warnings
+            status: capability.status,
+            capability,
+            warnings: [...validation.warnings, ...(capability.warnings || [])]
         };
     } catch (error) {
-        return fail(target, normalized, [error instanceof Error ? error.message : String(error)], validation.warnings, options);
+        return fail(target, normalized, [error instanceof Error ? error.message : String(error)], [...validation.warnings, ...(capability.warnings || [])], options);
     }
 }
 
