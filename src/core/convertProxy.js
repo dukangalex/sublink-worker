@@ -53,6 +53,7 @@ export function convertProxies(inputs = [], target, options = {}) {
 function fail(target, node, errors, warnings, options) {
     const result = {
         ok: false,
+        status: 'error',
         target: target ? String(target).toLowerCase() : target,
         node,
         output: null,
