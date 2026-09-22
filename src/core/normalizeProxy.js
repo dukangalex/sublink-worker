@@ -86,7 +86,7 @@ function normalizeTls(input) {
         'enable_session_resumption', 'disable_system_root', 'min_version',
         'max_version', 'cipher_suites', 'curve_preferences', 'reject_unknown_sni',
         'master_key_log', 'pinned_peer_cert_sha256', 'verify_peer_cert_by_name',
-        'verify_peer_cert_in_names', 'ech_server_keys', 'ech_config_list', 'ech_force_query'
+        'verify_peer_cert_in_names', 'ech_server_keys', 'ech_config_list', 'ech_force_query', 'tlsmirror', 'tlsmirror-opts', 'tls_mirror_opts'
     ]);
 }
 
