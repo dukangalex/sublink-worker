@@ -22,6 +22,12 @@ export function explainConversion(node, target) {
 
     const reasons = [];
     const degraded = [];
+
+    for (const constraint of entry.constraints || []) {
+        const result = constraint(node);
+        if (result?.supported === false) reasons.push(result.reason);
+        if (result?.warning) degraded.push(result.warning);
+    }
     const featureResults = [];
 
     for (const feature of getNodeFeatures(node)) {
