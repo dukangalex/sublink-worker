@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeProxy } from '../src/core/normalizeProxy.js';
+import { validateProxyNode } from '../src/core/validateProxyNode.js';
+import { explainConversion } from '../src/core/capabilityMatrix.js';
 import { toXray } from '../src/core/adapters/xray.js';
-import { toSingBox } from '../src/core/adapters/singbox.js';
 import { toClash } from '../src/core/adapters/clash.js';
 import '../src/core/adapters/index.js';
 
@@ -40,6 +41,21 @@ test('WireGuard peers become canonical camelCase fields', () => {
     assert.equal(peer.allowed_ips, undefined);
 });
 
+test('WireGuard validates peers without requiring a duplicate top-level endpoint', () => {
+    const node = normalizeProxy({
+        type: 'wireguard',
+        private_key: 'client-private',
+        peers: [{
+            server: 'wg.example.com',
+            port: 51820,
+            public_key: 'server-public'
+        }]
+    });
+    const result = validateProxyNode(node);
+    assert.equal(result.valid, true);
+    assert.deepEqual(result.errors, []);
+});
+
 test('WireGuard canonical peer maps to Xray schema', () => {
     const output = toXray(normalizeProxy(input));
     assert.equal(output.settings.peers[0].endpoint, 'wg.example.com:51820');
@@ -48,17 +64,16 @@ test('WireGuard canonical peer maps to Xray schema', () => {
     assert.equal(output.settings.peers[0].keepAlive, 25);
 });
 
-test('WireGuard canonical peer maps to sing-box schema', () => {
-    const output = toSingBox(normalizeProxy(input));
-    assert.equal(output.peers[0].address, 'wg.example.com');
-    assert.equal(output.peers[0].public_key, 'server-public');
-    assert.equal(output.peers[0].persistent_keepalive_interval, 25);
-});
-
 test('WireGuard canonical peer maps to Mihomo schema', () => {
     const output = toClash(normalizeProxy(input));
     assert.equal(output.peers[0].server, 'wg.example.com');
     assert.equal(output.peers[0]['public-key'], 'server-public');
     assert.equal(output.peers[0]['pre-shared-key'], 'psk');
     assert.deepEqual(output.peers[0]['allowed-ips'], ['0.0.0.0/0', '::/0']);
+});
+
+test('WireGuard is not advertised as a current sing-box outbound', () => {
+    const result = explainConversion(normalizeProxy(input), 'singbox');
+    assert.equal(result.supported, false);
+    assert.equal(result.status, 'unsupported');
 });
