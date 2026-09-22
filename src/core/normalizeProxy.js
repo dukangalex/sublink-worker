@@ -95,6 +95,7 @@ function normalizeTransportObject(transport) {
         earlyDataHeaderName: ['earlyDataHeaderName', 'early_data_header_name', 'early-data-header-name'],
         v2rayHttpUpgrade: ['v2rayHttpUpgrade', 'v2ray_http_upgrade', 'v2ray-http-upgrade'],
         v2rayHttpUpgradeFastOpen: ['v2rayHttpUpgradeFastOpen', 'v2ray_http_upgrade_fast_open', 'v2ray-http-upgrade-fast-open'],
+        acceptProxyProtocol: ['acceptProxyProtocol', 'accept_proxy_protocol', 'accept-proxy-protocol'],
         noGrpcHeader: ['noGrpcHeader', 'no_grpc_header', 'no-grpc-header'],
         xPaddingBytes: ['xPaddingBytes', 'x_padding_bytes', 'x-padding-bytes'],
         xPaddingObfsMode: ['xPaddingObfsMode', 'x_padding_obfs_mode', 'x-padding-obfs-mode'],
