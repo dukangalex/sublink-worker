@@ -213,8 +213,6 @@ test('Mihomo maps canonical WebSocket transport options', () => {
 
     const output = toClash(node);
     assert.deepEqual(output['ws-opts'], {
-        path: undefined,
-        headers: undefined,
         'max-early-data': 2048,
         'early-data-header-name': 'Sec-WebSocket-Protocol',
         'v2ray-http-upgrade': true,
