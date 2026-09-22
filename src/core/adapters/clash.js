@@ -135,6 +135,13 @@ function buildVless(base, node) {
         fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
+        'name-cert-verify': node.tls?.nameCertVerify,
+        certificate: node.tls?.certificate,
+        'private-key': node.tls?.privateKey,
+        'ech-opts': buildEchOptions(node.tls?.ech),
+        'shadow-tls-opts': buildShadowTlsOptions(node.tls?.shadowTls),
+        'restls-opts': buildRestlsOptions(node.tls?.restls),
+        'jls-opts': buildJlsOptions(node.tls?.jls),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
     };
@@ -162,6 +169,9 @@ function buildTlsProxy(base, node, extra = {}) {
         'client-fingerprint': node.tls?.clientFingerprint,
         alpn: node.tls?.alpn,
         'ech-opts': buildEchOptions(node.tls?.ech),
+        'shadow-tls-opts': buildShadowTlsOptions(node.tls?.shadowTls),
+        'restls-opts': buildRestlsOptions(node.tls?.restls),
+        'jls-opts': buildJlsOptions(node.tls?.jls),
         udp: node.protocolOptions.udp ?? true
     };
     if (node.transport?.type) {
