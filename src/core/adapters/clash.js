@@ -99,6 +99,15 @@ export function toClash(node) {
     }
 }
 
+function buildRealityOptions(reality) {
+    if (!reality || typeof reality !== 'object') return undefined;
+    return prune({
+        'public-key': reality.publicKey ?? reality.public_key,
+        'short-id': reality.shortId ?? reality.short_id,
+        'support-x25519mlkem768': reality.supportX25519Mlkem768
+    });
+}
+
 function buildVmess(base, node) {
     const out = {
         ...base,
@@ -119,7 +128,8 @@ function buildVmess(base, node) {
         'jls-opts': buildJlsOptions(node.tls?.jls),
         'tlsmirror-opts': buildTlsMirrorOptions(node.tls?.tlsMirror),
         network: node.transport?.type || 'tcp',
-        udp: node.protocolOptions.udp ?? true
+        udp: node.protocolOptions.udp ?? true,
+        'reality-opts': buildRealityOptions(node.reality || node.tls?.reality)
     };
     return applyTransport(out, node.transport);
 }
@@ -148,11 +158,7 @@ function buildVless(base, node) {
     };
     if (node.reality || node.tls?.reality) {
         const reality = node.reality || node.tls.reality;
-        out['reality-opts'] = {
-            'public-key': reality.public_key ?? reality.publicKey,
-            'short-id': reality.short_id ?? reality.shortId,
-            'support-x25519mlkem768': reality.supportX25519Mlkem768
-        };
+        out['reality-opts'] = buildRealityOptions(reality);
     }
     return applyTransport(out, node.transport);
 }
@@ -174,7 +180,8 @@ function buildTlsProxy(base, node, extra = {}) {
         'shadow-tls-opts': buildShadowTlsOptions(node.tls?.shadowTls),
         'restls-opts': buildRestlsOptions(node.tls?.restls),
         'jls-opts': buildJlsOptions(node.tls?.jls),
-        udp: node.protocolOptions.udp ?? true
+        udp: node.protocolOptions.udp ?? true,
+        'reality-opts': buildRealityOptions(node.reality || node.tls?.reality)
     };
     if (node.transport?.type) {
         out.network = node.transport.type;
