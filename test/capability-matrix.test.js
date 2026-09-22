@@ -40,23 +40,20 @@ describe('feature-level conversion capabilities', () => {
             { feature: 'transport.xhttp', status: 'supported' }
         ]);
     });
-});
 
+    it('does not advertise unsupported Xray protocols', () => {
+        expect(explainConversion({ protocol: 'anytls' }, 'xray').status).toBe('unsupported');
+        expect(explainConversion({ protocol: 'hysteria' }, 'xray').status).toBe('unsupported');
+    });
 
-it('does not advertise unsupported Xray protocols', () => {
-    expect(explainConversion({ protocol: 'anytls' }, 'xray').status).toBe('unsupported');
-    expect(explainConversion({ protocol: 'hysteria' }, 'xray').status).toBe('unsupported');
-});
+    it('advertises Hysteria2 as the Xray Hysteria v2 protocol', () => {
+        expect(explainConversion({ protocol: 'hysteria2' }, 'xray').status).toBe('supported');
+    });
 
-it('advertises Hysteria2 as the Xray Hysteria v2 protocol', () => {
-    expect(explainConversion({ protocol: 'hysteria2' }, 'xray').status).toBe('supported');
-});
-
-
-it('surfaces the official sing-box WireGuard deprecation', () => {
-    const result = explainConversion({ protocol: 'wireguard' }, 'singbox');
-    expect(result.supported).toBe(true);
-    expect(result.warnings).toEqual(expect.arrayContaining([
-        expect.stringContaining('WireGuard outbound is deprecated in sing-box 1.11.0')
-    ]));
+    it('does not advertise the removed sing-box WireGuard outbound', () => {
+        const result = explainConversion({ protocol: 'wireguard' }, 'singbox');
+        expect(result.supported).toBe(false);
+        expect(result.status).toBe('unsupported');
+        expect(result.reasons).toContain('No adapter capability has been declared for this protocol/target pair.');
+    });
 });
