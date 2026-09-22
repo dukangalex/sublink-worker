@@ -71,7 +71,9 @@ const xrayFeaturesFor = (protocol) => ({
 const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','http','wireguard','hysteria2']);
 
 for (const protocol of protocols) {
-    declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures, ...(protocol === 'wireguard' ? { warnings: ['WireGuard outbound is deprecated in sing-box 1.11.0 and will be removed in 1.13.0; use a WireGuard endpoint for current sing-box configurations.'] } : {}) });
+    if (protocol !== 'wireguard') {
+        declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
+    }
     declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol) });
     if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol) });
     if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol) });
