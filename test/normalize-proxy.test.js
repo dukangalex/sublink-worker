@@ -141,3 +141,31 @@ test('canonicalizes gRPC and WebSocket transport aliases', () => {
     assert.equal(ws.transport.v2rayHttpUpgrade, true);
     assert.equal(ws.transport.v2rayHttpUpgradeFastOpen, true);
 });
+
+
+test('canonicalizes mKCP fields without target-specific key names', () => {
+    const node = normalizeProxy({
+        type: 'vmess',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        network: 'mkcp',
+        mkcp_opts: {
+            mtu: 1350,
+            tti: 50,
+            'uplink-capacity': 5,
+            'downlink-capacity': 20,
+            congestion: false,
+            'write-buffer': 2097152,
+            'read-buffer': 2097152,
+            seed: 'seed',
+            header: 'srtp'
+        }
+    });
+
+    assert.equal(node.transport.uplinkCapacity, 5);
+    assert.equal(node.transport.downlinkCapacity, 20);
+    assert.equal(node.transport.writeBuffer, 2097152);
+    assert.equal(node.transport.readBuffer, 2097152);
+    assert.equal(node.transport['uplink-capacity'], undefined);
+});
