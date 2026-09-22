@@ -65,8 +65,23 @@ function buildStreamSettings(node) {
     }
     if (tls || reality) {
         out.security = reality ? 'reality' : 'tls';
-        out.tlsSettings = tls ? { serverName: tls.serverName, allowInsecure: tls.insecure, alpn: tls.alpn, fingerprint: tls.clientFingerprint ?? tls.fingerprint } : {};
-        if (reality) out.realitySettings = { serverName: reality.serverName ?? tls?.serverName, fingerprint: reality.fingerprint ?? tls?.clientFingerprint ?? tls?.fingerprint, password: reality.publicKey ?? reality.public_key, shortId: reality.shortId ?? reality.short_id, mldsa65Verify: reality.mldsa65Verify, spiderX: reality.spiderX };
+        if (reality) {
+            out.realitySettings = {
+                serverName: reality.serverName ?? tls?.serverName,
+                fingerprint: reality.fingerprint ?? tls?.clientFingerprint ?? tls?.fingerprint,
+                password: reality.publicKey ?? reality.public_key,
+                shortId: reality.shortId ?? reality.short_id,
+                mldsa65Verify: reality.mldsa65Verify,
+                spiderX: reality.spiderX
+            };
+        } else {
+            out.tlsSettings = tls ? {
+                serverName: tls.serverName,
+                allowInsecure: tls.insecure,
+                alpn: tls.alpn,
+                fingerprint: tls.clientFingerprint ?? tls.fingerprint
+            } : {};
+        }
     }
     return Object.keys(out).length ? out : undefined;
 }
