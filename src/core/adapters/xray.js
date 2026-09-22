@@ -40,13 +40,25 @@ function buildSettings(node) {
         case 'http':
             return { servers: [{ address: node.endpoint.host, port: node.endpoint.port, users: c.username || c.password ? [{ user: c.username, pass: c.password }] : [] }] };
         case 'wireguard':
-            return { secretKey: c.private_key, address: o.local_address || o.address, peers: o.peers || [] };
+            return buildXrayWireguard(node);
         case 'hysteria':
         case 'hysteria2':
             return { address: node.endpoint.host, port: node.endpoint.port, password: c.password };
         default:
             return { address: node.endpoint.host, port: node.endpoint.port, ...o };
     }
+}
+
+function buildXrayWireguard(node) {
+    const o = node.protocolOptions || {};
+    const peers = (o.peers || []).map(peer => prune({
+        endpoint: peer.address && peer.port ? peer.address + ':' + peer.port : undefined,
+        publicKey: peer.publicKey,
+        preSharedKey: peer.preSharedKey,
+        keepAlive: peer.persistentKeepalive,
+        allowedIPs: peer.allowedIPs
+    }));
+    return prune({ secretKey: node.credentials.private_key, address: o.local_address, peers, mtu: o.mtu, reserved: o.reserved, remoteDNS: o.remote_dns });
 }
 
 function buildStreamSettings(node) {
