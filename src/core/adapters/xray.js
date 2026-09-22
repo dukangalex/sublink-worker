@@ -74,7 +74,7 @@ function buildStreamSettings(node) {
             'path', 'headers', 'host', 'heartbeatPeriod'
         ]);
         if (network === 'grpc') out.grpcSettings = mapGrpcSettings(t);
-        if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
+        if (network === 'httpupgrade') out.httpupgradeSettings = mapHttpUpgradeSettings(t);
         if (network === 'xhttp') out.xhttpSettings = mapXhttpSettings(t);
         if (network === 'mkcp') out.kcpSettings = pick(t, [
             'mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity',
@@ -109,6 +109,15 @@ function buildStreamSettings(node) {
         }
     }
     return Object.keys(out).length ? out : undefined;
+}
+
+function mapHttpUpgradeSettings(transport) {
+    return prune({
+        host: transport.host,
+        path: transport.path,
+        headers: transport.headers,
+        acceptProxyProtocol: transport.acceptProxyProtocol
+    });
 }
 
 function mapXhttpSettings(transport) {
