@@ -27,7 +27,8 @@ export function validateProxyNode(node, options = {}) {
 
     const protocol = String(node.protocol || '').toLowerCase();
     if (!protocol) errors.push('Protocol is required');
-    if (SERVER_PROTOCOLS.has(protocol)) {
+
+    if (SERVER_PROTOCOLS.has(protocol) && protocol !== 'wireguard') {
         if (!node.endpoint?.host) errors.push('Endpoint host is required');
         const port = Number(node.endpoint?.port);
         if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -40,12 +41,7 @@ export function validateProxyNode(node, options = {}) {
     }
 
     if (protocol === 'wireguard') {
-        if (!node.credentials?.private_key) errors.push('WireGuard private key is required');
-        const peers = node.protocolOptions?.peers;
-        const peerPublicKey = node.credentials?.peer_public_key;
-        if (!peerPublicKey && (!Array.isArray(peers) || !peers.some(peer => peer?.public_key || peer?.publicKey))) {
-            errors.push('WireGuard peer public key is required');
-        }
+        validateWireguard(node, errors);
     }
 
     if (protocol === 'ssh' && !node.credentials?.password && !node.credentials?.private_key) {
@@ -78,6 +74,31 @@ export function validateProxyNode(node, options = {}) {
     if (options.strict && warnings.length) errors.push(...warnings);
 
     return { valid: errors.length === 0, errors, warnings };
+}
+
+function validateWireguard(node, errors) {
+    if (!node.credentials?.private_key) {
+        errors.push('WireGuard private key is required');
+    }
+
+    const peers = node.protocolOptions?.peers;
+    if (!Array.isArray(peers) || peers.length === 0) {
+        errors.push('WireGuard requires at least one peer');
+        return;
+    }
+
+    peers.forEach((peer, index) => {
+        if (!peer?.address) errors.push(`WireGuard peer ${index + 1} address is required`);
+
+        const port = Number(peer?.port);
+        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+            errors.push(`WireGuard peer ${index + 1} port must be an integer between 1 and 65535`);
+        }
+
+        if (!peer?.publicKey) {
+            errors.push(`WireGuard peer ${index + 1} public key is required`);
+        }
+    });
 }
 
 function readPath(object, path) {
