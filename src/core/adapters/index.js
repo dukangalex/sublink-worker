@@ -44,6 +44,20 @@ const clashFeaturesFor = (protocol) => ({
     'transport.quic': protocol === 'hysteria' || protocol === 'hysteria2' || protocol === 'tuic'
 });
 
+const clashConstraintsFor = (protocol) => [
+    (node) => {
+        const reality = Boolean(node.reality || node.tls?.reality);
+        const transport = String(node.transport?.type || 'tcp').toLowerCase();
+        if (reality && !['tcp', 'grpc', 'xhttp'].includes(transport)) {
+            return {
+                supported: false,
+                reason: `Mihomo does not support REALITY with \${transport} transport for \${protocol}`
+            };
+        }
+        return { supported: true };
+    }
+];
+
 const surgeProtocols = new Set(['shadowsocks','vmess','trojan','hysteria2','tuic','socks','http','wireguard','anytls','snell','ssh']);
 
 const surgeFeaturesFor = (protocol) => ({
@@ -74,7 +88,7 @@ for (const protocol of protocols) {
     if (protocol !== 'wireguard') {
         declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
     }
-    declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol) });
+    declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol), constraints: clashConstraintsFor(protocol) });
     if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol) });
     if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol) });
 }
