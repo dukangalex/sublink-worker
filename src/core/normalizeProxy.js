@@ -103,10 +103,10 @@ function normalizeEch(...values) {
 function normalizeShadowTls(...values) {
     const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
     if (!Object.keys(source).length) return undefined;
-    return pruneAliases({
+    return {
         version: firstDefined(source.version),
         password: firstDefined(source.password)
-    }, ['version']);
+    };
 }
 
 function normalizeRestls(...values) {
