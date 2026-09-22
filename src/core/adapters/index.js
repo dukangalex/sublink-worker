@@ -17,13 +17,14 @@ const singBoxFeatures = {
     'transport.httpupgrade': true,
     'transport.xhttp': false,
     'transport.mkcp': false,
+    'transport.mekya': false,
     'transport.domainsocket': false,
     multiplex: true,
     packet_encoding: true,
     udp_over_stream: true
 };
 
-const clashFeatures = {
+const baseClashFeatures = {
     tls: true,
     'tls.utls': true,
     'tls.reality': true,
@@ -31,21 +32,21 @@ const clashFeatures = {
     'transport.ws': true,
     'transport.h2': true,
     'transport.grpc': true,
-    'transport.xhttp': true,
     multiplex: true,
     packet_encoding: true
 };
 
-for (const protocol of protocols) {
-    declareCapability(protocol, 'singbox', {
-        adapter: 'generic',
-        features: singBoxFeatures
-    });
+const clashFeaturesFor = (protocol) => ({
+    ...baseClashFeatures,
+    'transport.xhttp': protocol === 'vless',
+    'transport.mkcp': protocol === 'vmess',
+    'transport.mekya': protocol === 'vmess',
+    'transport.quic': protocol === 'hysteria' || protocol === 'hysteria2' || protocol === 'tuic'
+});
 
-    declareCapability(protocol, 'clash', {
-        adapter: 'mihomo',
-        features: clashFeatures
-    });
+for (const protocol of protocols) {
+    declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
+    declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol) });
 }
 
 export { toSingBox } from './singbox.js';
