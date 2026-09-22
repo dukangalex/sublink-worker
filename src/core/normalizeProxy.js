@@ -120,6 +120,8 @@ function normalizeTransportObject(transport) {
         tti: ['tti'],
         uplinkCapacity: ['uplinkCapacity', 'uplink_capacity', 'uplink-capacity'],
         downlinkCapacity: ['downlinkCapacity', 'downlink_capacity', 'downlink-capacity'],
+        cwndMultiplier: ['cwndMultiplier', 'cwnd_multiplier', 'cwnd-multiplier'],
+        maxSendingWindow: ['maxSendingWindow', 'max_sending_window', 'max-sending-window'],
         congestion: ['congestion'],
         writeBuffer: ['writeBuffer', 'write_buffer', 'write-buffer'],
         readBuffer: ['readBuffer', 'read_buffer', 'read-buffer'],
