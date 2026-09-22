@@ -257,9 +257,7 @@ test('Xray maps only current mKCP fields and rejects removed legacy fields', () 
             'uplink-capacity': 5,
             'downlink-capacity': 20,
             'cwnd-multiplier': 2,
-            'max-sending-window': 64,
-            seed: 'legacy-seed',
-            header: { type: 'srtp' }
+            'max-sending-window': 64
         }
     });
 
