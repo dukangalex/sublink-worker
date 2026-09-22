@@ -55,6 +55,8 @@ export function toSurge(node) {
         add(params, 'private-key', node.credentials?.private_key);
     } else if (node.protocol === 'socks') {
         add(params, 'username', node.credentials?.username);
+        add(params, 'udp-relay', node.protocolOptions?.udp_relay ?? node.protocolOptions?.udp);
+
         add(params, 'password', node.credentials?.password);
     } else if (node.protocol === 'http') {
         add(params, 'username', node.credentials?.username);
@@ -103,6 +105,9 @@ function buildWireGuard(node, name) {
         `[WireGuard ${escapeSection(sectionName)}]`,
         `private-key = ${node.credentials?.private_key || ''}`,
         `self-ip = ${stripCidr(o.local_address || o.address || '')}`,
+        o.local_address_v6 || o.ipv6 ? `self-ip-v6 = ${stripCidr(o.local_address_v6 || o.ipv6)}` : '',
+        o.dns_server || o.dns ? `dns-server = ${join(o.dns_server || o.dns)}` : '',
+        o.mtu !== undefined ? `mtu = ${o.mtu}` : '',
         `peer = ${peers.filter(Boolean).map(peer => {
             const fields = [];
             if (peer.public_key || peer.publicKey) fields.push(`public-key = ${peer.public_key || peer.publicKey}`);
@@ -110,6 +115,7 @@ function buildWireGuard(node, name) {
             if (peer.allowed_ips || peer.allowedIPs) fields.push(`allowed-ips = ${quoteIfComma(join(peer.allowed_ips || peer.allowedIPs))}`);
             if (peer.pre_shared_key || peer.preshared_key) fields.push(`preshared-key = ${peer.pre_shared_key || peer.preshared_key}`);
             if (peer.keepalive !== undefined) fields.push(`keepalive = ${peer.keepalive}`);
+            if (peer.client_id || peer.clientId) fields.push(`client-id = ${peer.client_id || peer.clientId}`);
             return `(${fields.join(', ')})`;
         }).join(', ')}`
     ].filter(Boolean).join('\\n');
