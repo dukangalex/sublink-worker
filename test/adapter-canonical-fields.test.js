@@ -57,3 +57,25 @@ test('sing-box emits client fingerprint through uTLS', () => {
     assert.equal(output.tls.server_name, 'example.com');
     assert.equal(output.tls.clientFingerprint, undefined);
 });
+
+
+it('does not leak canonical protocol option keys through sing-box', () => {
+    const output = toSingBox({
+        name: 'vmess',
+        protocol: 'vmess',
+        endpoint: { host: 'example.com', port: 443 },
+        credentials: { uuid: 'uuid' },
+        protocolOptions: { security: 'auto', internalOnly: 'must-not-leak' }
+    });
+    expect(output.security).toBe('auto');
+    expect(output.internalOnly).toBeUndefined();
+});
+
+it('does not leak canonical protocol options through Xray fallback', () => {
+    expect(() => toXray({
+        name: 'unknown',
+        protocol: 'unknown',
+        endpoint: { host: 'example.com', port: 443 },
+        protocolOptions: { internalOnly: 'must-not-leak' }
+    })).toThrow('No explicit Xray adapter mapping');
+});
