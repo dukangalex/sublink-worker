@@ -48,7 +48,7 @@ export function toClash(node) {
         case 'anytls':
             return buildTlsProxy(base, node, {
                 password: node.credentials.password,
-                'client-fingerprint': node.tls?.fingerprint,
+                'client-fingerprint': node.tls?.clientFingerprint,
                 'idle-session-check-interval': node.protocolOptions.idle_session_check_interval,
                 'idle-session-timeout': node.protocolOptions.idle_session_timeout,
                 'min-idle-session': node.protocolOptions.min_idle_session
@@ -107,7 +107,7 @@ function buildVmess(base, node) {
         cipher: node.protocolOptions.security || 'auto',
         tls: Boolean(node.tls),
         servername: node.tls?.serverName,
-        'client-fingerprint': node.tls?.fingerprint,
+        'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
@@ -123,7 +123,7 @@ function buildVless(base, node) {
         'packet-encoding': node.protocolOptions.packet_encoding,
         tls: Boolean(node.tls),
         servername: node.tls?.serverName,
-        'client-fingerprint': node.tls?.fingerprint,
+        'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
@@ -145,7 +145,7 @@ function buildTlsProxy(base, node, extra = {}) {
         tls: true,
         sni: node.tls?.serverName,
         'skip-cert-verify': Boolean(node.tls?.insecure),
-        'client-fingerprint': node.tls?.fingerprint,
+        'client-fingerprint': node.tls?.clientFingerprint,
         alpn: node.tls?.alpn,
         udp: node.protocolOptions.udp ?? true
     };
