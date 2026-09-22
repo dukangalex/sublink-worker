@@ -444,3 +444,31 @@ test('Xray refuses incomplete XHTTP downloadSettings instead of silently droppin
         /downloadSettings requires a complete nested StreamConfig/
     );
 });
+
+
+test('Mihomo maps canonical TLS verification and ECH fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            ...base.tls,
+            'name-cert-verify': 'verify.example.com',
+            certificate: 'CERT',
+            'private-key': 'KEY',
+            'ech-opts': {
+                enable: true,
+                config: 'ECH-CONFIG',
+                'query-server-name': 'resolver.example.com'
+            }
+        }
+    });
+
+    const output = toClash(node);
+    assert.equal(output['name-cert-verify'], 'verify.example.com');
+    assert.equal(output.certificate, 'CERT');
+    assert.equal(output['private-key'], 'KEY');
+    assert.deepEqual(output['ech-opts'], {
+        enable: true,
+        config: 'ECH-CONFIG',
+        'query-server-name': 'resolver.example.com'
+    });
+});
