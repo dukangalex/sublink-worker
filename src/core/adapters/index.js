@@ -51,7 +51,7 @@ const clashConstraintsFor = (protocol) => [
         if (reality && !['tcp', 'grpc', 'xhttp'].includes(transport)) {
             return {
                 supported: false,
-                reason: `Mihomo does not support REALITY with \${transport} transport for \${protocol}`
+                reason: `Mihomo does not support REALITY with ${transport} transport for ${protocol}`
             };
         }
         return { supported: true };
