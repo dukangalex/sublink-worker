@@ -23,6 +23,17 @@ export function explainConversion(node, target) {
     const reasons = [];
     const degraded = [];
 
+    const transport = String(node?.transport?.type || '').toLowerCase();
+    if (target === 'clash' && transport === 'xhttp' && node?.protocol !== 'vless') {
+        reasons.push('Mihomo xhttp transport is supported only for VLESS');
+    }
+    if (target === 'clash' && transport === 'mkcp' && node?.protocol !== 'vmess') {
+        reasons.push('Mihomo mKCP transport is supported only for VMess');
+    }
+    if (target === 'clash' && transport === 'mekya' && node?.protocol !== 'vmess') {
+        reasons.push('Mihomo Mekya transport is supported only for VMess');
+    }
+
     for (const constraint of entry.constraints || []) {
         const result = constraint(node);
         if (result?.supported === false) reasons.push(result.reason);
