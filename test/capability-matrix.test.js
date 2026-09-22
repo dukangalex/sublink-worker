@@ -57,3 +57,40 @@ describe('feature-level conversion capabilities', () => {
         expect(result.reasons).toContain('No adapter capability has been declared for this protocol/target pair.');
     });
 });
+
+
+describe('transport security compatibility constraints', () => {
+    it('rejects Mihomo Reality over WebSocket', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: { serverName: 'example.com' },
+            reality: { publicKey: 'pk', shortId: 'sid' },
+            transport: { type: 'ws' }
+        }, 'clash');
+
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('Mihomo does not support REALITY with ws transport for vless');
+    });
+
+    it('accepts Mihomo Reality over gRPC', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: { serverName: 'example.com' },
+            reality: { publicKey: 'pk', shortId: 'sid' },
+            transport: { type: 'grpc' }
+        }, 'clash');
+
+        expect(result.supported).toBe(true);
+    });
+
+    it('rejects Xray Reality over WebSocket', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            reality: { publicKey: 'pk', shortId: 'sid' },
+            transport: { type: 'ws' }
+        }, 'xray');
+
+        expect(result.supported).toBe(false);
+        expect(result.reasons[0]).toContain('Xray REALITY is only compatible with RAW, XHTTP, and gRPC');
+    });
+});
