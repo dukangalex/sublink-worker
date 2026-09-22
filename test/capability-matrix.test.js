@@ -41,3 +41,13 @@ describe('feature-level conversion capabilities', () => {
         ]);
     });
 });
+
+
+it('does not advertise unsupported Xray protocols', () => {
+    expect(explainConversion({ protocol: 'anytls' }, 'xray').status).toBe('unsupported');
+    expect(explainConversion({ protocol: 'hysteria' }, 'xray').status).toBe('unsupported');
+});
+
+it('advertises Hysteria2 as the Xray Hysteria v2 protocol', () => {
+    expect(explainConversion({ protocol: 'hysteria2' }, 'xray').status).toBe('supported');
+});
