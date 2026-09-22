@@ -125,7 +125,6 @@ describe('transport security compatibility constraints', () => {
         expect(result.supported).toBe(false);
         expect(result.reasons[0]).toContain('Xray REALITY is only compatible with RAW, XHTTP, and gRPC');
     });
-});
 
     it('rejects generic ECH when converting to Xray', () => {
         const result = explainConversion({
@@ -163,6 +162,43 @@ describe('transport security compatibility constraints', () => {
         expect(result.reasons).toContain(
             'Xray does not expose Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
         );
+    });
+
+    it('rejects Mihomo TLSMirror on non-VMess Clash targets', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: { tlsMirror: { primaryKey: 'KEY' } }
+        }, 'clash');
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('Mihomo TLSMirror is supported only for VMess; got vless');
+    });
+
+    it('accepts Mihomo TLSMirror on VMess Clash targets', () => {
+        const result = explainConversion({
+            protocol: 'vmess',
+            tls: { tlsMirror: { primaryKey: 'KEY' } }
+        }, 'clash');
+        expect(result.supported).toBe(true);
+    });
+
+    it('rejects Mihomo TLSMirror on Xray and sing-box', () => {
+        for (const target of ['xray', 'singbox']) {
+            const result = explainConversion({
+                protocol: 'vmess',
+                tls: { tlsMirror: { primaryKey: 'KEY' } }
+            }, target);
+            expect(result.supported).toBe(false);
+        }
+    });
+
+    it('rejects Mihomo REALITY ML-KEM capability on Xray and sing-box', () => {
+        for (const target of ['xray', 'singbox']) {
+            const result = explainConversion({
+                protocol: 'vless',
+                reality: { publicKey: 'pk', shortId: 'sid', supportX25519Mlkem768: true }
+            }, target);
+            expect(result.supported).toBe(false);
+        }
     });
 
 });
