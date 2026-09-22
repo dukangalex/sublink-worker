@@ -51,3 +51,4 @@ for (const protocol of protocols) {
 
 export { toSingBox } from './singbox.js';
 export { toClash } from './clash.js';
+export { toXray } from './xray.js';
