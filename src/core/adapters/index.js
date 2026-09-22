@@ -26,10 +26,16 @@ const singBoxFeatures = {
 
 const singBoxConstraintsFor = () => [
     (node) => {
-        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls) {
+        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls || node.tls?.tlsMirror) {
             return {
                 supported: false,
-                reason: 'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+                reason: 'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, JLS, or TLSMirror outbound fields; conversion would drop TLS carrier behavior'
+            };
+        }
+        if (node.reality?.supportX25519Mlkem768) {
+            return {
+                supported: false,
+                reason: 'sing-box adapter does not model Mihomo REALITY support-x25519mlkem768; conversion would change REALITY capability semantics'
             };
         }
         return { supported: true };
@@ -58,6 +64,13 @@ const clashFeaturesFor = (protocol) => ({
 
 const clashConstraintsFor = (protocol) => [
     (node) => {
+        if (node.tls?.tlsMirror && protocol !== 'vmess') {
+            return {
+                supported: false,
+                reason: `Mihomo TLSMirror is supported only for VMess; got ${protocol}`
+            };
+        }
+
         const reality = Boolean(node.reality || node.tls?.reality);
         const transport = String(node.transport?.type || 'tcp').toLowerCase();
         if (reality && !['tcp', 'grpc', 'xhttp'].includes(transport)) {
@@ -71,6 +84,18 @@ const clashConstraintsFor = (protocol) => [
 ];
 
 const surgeProtocols = new Set(['shadowsocks','vmess','trojan','hysteria2','tuic','socks','http','wireguard','anytls','snell','ssh']);
+
+const surgeConstraintsFor = () => [
+    (node) => {
+        if (node.tls?.tlsMirror || node.tls?.shadowTls || node.tls?.restls || node.tls?.jls || node.tls?.ech || node.reality?.supportX25519Mlkem768) {
+            return {
+                supported: false,
+                reason: 'Surge adapter does not model these Mihomo-specific TLS carrier/ECH/REALITY fields; conversion would drop TLS behavior'
+            };
+        }
+        return { supported: true };
+    }
+];
 
 const surgeFeaturesFor = (protocol) => ({
     tls: ['vmess','trojan','hysteria2','tuic','socks','http','anytls'].includes(protocol),
@@ -111,10 +136,16 @@ const xrayConstraintsFor = (protocol) => [
                 reason: 'Xray Hysteria transport requires TLS'
             };
         }
-        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls) {
+        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls || node.tls?.tlsMirror) {
             return {
                 supported: false,
-                reason: 'Xray does not expose Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+                reason: 'Xray does not expose Mihomo ShadowTLS, ResTLS, JLS, or TLSMirror outbound fields; conversion would drop TLS carrier behavior'
+            };
+        }
+        if (node.reality?.supportX25519Mlkem768) {
+            return {
+                supported: false,
+                reason: 'Xray adapter does not model Mihomo REALITY support-x25519mlkem768; conversion would change REALITY capability semantics'
             };
         }
         if (node.tls?.ech) {
@@ -157,7 +188,7 @@ for (const protocol of protocols) {
     }
     declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol), constraints: clashConstraintsFor(protocol) });
     if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol), constraints: xrayConstraintsFor(protocol) });
-    if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol) });
+    if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol), constraints: surgeConstraintsFor() });
 }
 
 export { toSingBox } from './singbox.js';
