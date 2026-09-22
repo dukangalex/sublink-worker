@@ -64,6 +64,12 @@ const clashFeaturesFor = (protocol) => ({
 
 const clashConstraintsFor = (protocol) => [
     (node) => {
+        if (node.reality && protocol === 'anytls') {
+            return {
+                supported: false,
+                reason: 'Mihomo does not support AnyTLS with REALITY'
+            };
+        }
         if (node.tls?.tlsMirror && protocol !== 'vmess') {
             return {
                 supported: false,
