@@ -65,7 +65,7 @@ function buildStreamSettings(node) {
     const tls = node.tls;
     const reality = node.reality;
     const out = {};
-    if (node.protocol === 'hysteria2') {\n        out.network = 'hysteria';\n        out.method = 'hysteria';\n        out.hysteriaSettings = { version: 2, auth: node.credentials?.password, up: node.protocolOptions?.up, down: node.protocolOptions?.down };\n    } else if (t.type) {
+    if (node.protocol === 'hysteria2') {\n        out.network = 'hysteria';\n        out.method = 'hysteria';\n        out.hysteriaSettings = { version: 2, auth: node.credentials?.password };\n    } else if (t.type) {
         const network = t.type === 'ws' ? 'ws' : t.type === 'grpc' ? 'grpc' : t.type === 'httpupgrade' ? 'httpupgrade' : t.type === 'mkcp' ? 'kcp' : t.type === 'xhttp' ? 'xhttp' : 'tcp';
         out.network = network;
         if (network === 'ws') out.wsSettings = pick(t, ['path', 'headers']);
