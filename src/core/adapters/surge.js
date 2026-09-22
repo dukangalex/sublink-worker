@@ -111,7 +111,7 @@ function buildWireGuard(node, name) {
             if (peer.pre_shared_key || peer.preshared_key) fields.push(`preshared-key = ${peer.pre_shared_key || peer.preshared_key}`);
             if (peer.keepalive !== undefined) fields.push(`keepalive = ${peer.keepalive}`);
             return `(${fields.join(', ')})`;
-        }).join(', ')}\``
+        }).join(', ')}`
     ].filter(Boolean).join('\\n');
 
     return {
