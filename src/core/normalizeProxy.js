@@ -60,6 +60,7 @@ function normalizeTls(input) {
         shadowTls: normalizeShadowTls(source.shadowTls, source['shadow-tls-opts'], source.shadow_tls_opts),
         restls: normalizeRestls(source.restls, source['restls-opts'], source.restls_opts),
         jls: normalizeJls(source.jls, source['jls-opts'], source.jls_opts),
+        tlsMirror: normalizeTlsMirror(source.tlsMirror, source.tlsmirror, source['tlsmirror-opts'], source.tlsmirror_opts),
         nameCertVerify: firstDefined(source.nameCertVerify, source.name_cert_verify, source['name-cert-verify']),
         certificate: firstDefined(source.certificate, source.cert),
         privateKey: firstDefined(source.privateKey, source.private_key, source['private-key']),
@@ -125,6 +126,118 @@ function normalizeJls(...values) {
     return {
         username: firstDefined(source.username),
         password: firstDefined(source.password)
+    };
+}
+
+function normalizeTlsMirror(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        primaryKey: firstDefined(source.primaryKey, source.primary_key, source['primary-key']),
+        explicitNonceCiphersuites: firstDefined(
+            source.explicitNonceCiphersuites,
+            source.explicit_nonce_ciphersuites,
+            source['explicit-nonce-ciphersuites']
+        ),
+        deferInstanceDerivedWriteTime: normalizeTlsMirrorDuration(
+            source.deferInstanceDerivedWriteTime,
+            source.defer_instance_derived_write_time,
+            source['defer-instance-derived-write-time']
+        ),
+        transportLayerPadding: normalizeTlsMirrorObject(
+            source.transportLayerPadding,
+            source.transport_layer_padding,
+            source['transport-layer-padding']
+        ),
+        connectionEnrolment: normalizeTlsMirrorConnectionEnrolment(
+            source.connectionEnrolment,
+            source.connection_enrolment,
+            source['connection-enrolment']
+        ),
+        sequenceWatermarkingEnabled: firstDefined(
+            source.sequenceWatermarkingEnabled,
+            source.sequence_watermarking_enabled,
+            source['sequence-watermarking-enabled']
+        ),
+        embeddedTrafficGenerator: normalizeTlsMirrorTrafficGenerator(
+            source.embeddedTrafficGenerator,
+            source.embedded_traffic_generator,
+            source['embedded-traffic-generator']
+        )
+    };
+}
+
+function normalizeTlsMirrorObject(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        enabled: firstDefined(source.enabled)
+    };
+}
+
+function normalizeTlsMirrorDuration(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        baseNanoseconds: firstDefined(source.baseNanoseconds, source.base_nanoseconds, source['base-nanoseconds']),
+        uniformRandomMultiplierNanoseconds: firstDefined(
+            source.uniformRandomMultiplierNanoseconds,
+            source.uniform_random_multiplier_nanoseconds,
+            source['uniform-random-multiplier-nanoseconds']
+        )
+    };
+}
+
+function normalizeTlsMirrorConnectionEnrolment(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        primaryIngressOutbound: firstDefined(
+            source.primaryIngressOutbound,
+            source.primary_ingress_outbound,
+            source['primary-ingress-outbound']
+        ),
+        primaryEgressOutbound: firstDefined(
+            source.primaryEgressOutbound,
+            source.primary_egress_outbound,
+            source['primary-egress-outbound']
+        )
+    };
+}
+
+function normalizeTlsMirrorTrafficGenerator(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        steps: Array.isArray(source.steps) ? source.steps.map(normalizeTlsMirrorStep) : undefined
+    };
+}
+
+function normalizeTlsMirrorStep(step = {}) {
+    return {
+        name: step.name,
+        host: step.host,
+        path: step.path,
+        method: step.method,
+        headers: Array.isArray(step.headers) ? step.headers.map(header => ({
+            name: header?.name,
+            value: header?.value,
+            values: header?.values
+        })) : undefined,
+        connectionReady: firstDefined(step.connectionReady, step.connection_ready, step['connection-ready']),
+        connectionRecallExit: firstDefined(step.connectionRecallExit, step.connection_recall_exit, step['connection-recall-exit']),
+        h2DoNotWaitForDownloadFinish: firstDefined(
+            step.h2DoNotWaitForDownloadFinish,
+            step.h2_do_not_wait_for_download_finish,
+            step['h2-do-not-wait-for-download-finish']
+        ),
+        waitTime: normalizeTlsMirrorDuration(step.waitTime, step.wait_time, step['wait-time']),
+        nextStep: Array.isArray(step.nextStep ?? step.next_step ?? step['next-step'])
+            ? (step.nextStep ?? step.next_step ?? step['next-step']).map(next => ({
+                weight: next?.weight,
+                gotoLocation: firstDefined(next?.gotoLocation, next?.goto_location, next?.['goto-location'])
+            }))
+            : undefined
     };
 }
 
@@ -269,10 +382,11 @@ function normalizeReality(input) {
         serverName: firstDefined(source.serverName, source.server_name, source.servername),
         fingerprint: firstDefined(source.fingerprint, source.clientFingerprint, source.client_fingerprint),
         mldsa65Verify: firstDefined(source.mldsa65Verify, source.mldsa65_verify),
-        spiderX: firstDefined(source.spiderX, source.spider_x)
+        spiderX: firstDefined(source.spiderX, source.spider_x),
+        supportX25519Mlkem768: firstDefined(source.supportX25519Mlkem768, source.support_x25519mlkem768, source['support-x25519mlkem768'])
     }, [
         'public_key', 'short_id', 'server_name', 'servername',
-        'client_fingerprint', 'mldsa65_verify', 'spider_x', 'password'
+        'client_fingerprint', 'mldsa65_verify', 'spider_x', 'password', 'support_x25519mlkem768', 'support-x25519mlkem768'
     ]);
 }
 
