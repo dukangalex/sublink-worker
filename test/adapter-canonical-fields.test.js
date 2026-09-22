@@ -503,8 +503,6 @@ test('Mihomo maps REALITY ML-KEM capability and TLSMirror fields explicitly', ()
         server: 'example.com',
         server_port: 443,
         uuid: '00000000-0000-0000-0000-000000000001',
-        tls: {
-            servername: 'example.com',
         reality_opts: {
             'support-x25519mlkem768': true
         },
