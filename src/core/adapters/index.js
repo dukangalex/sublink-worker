@@ -82,6 +82,21 @@ const xrayFeaturesFor = (protocol) => ({
     multiplex: true
 });
 
+const xrayConstraintsFor = (protocol) => [
+    (node) => {
+        const reality = Boolean(node.reality || node.tls?.reality);
+        const transport = String(node.transport?.type || 'raw').toLowerCase();
+        const normalized = transport === 'ws' ? 'websocket' : transport;
+        if (reality && !['raw', 'tcp', 'xhttp', 'grpc'].includes(normalized)) {
+            return {
+                supported: false,
+                reason: 'Xray REALITY is only compatible with RAW, XHTTP, and gRPC; got ' + normalized + ' for ' + protocol
+            };
+        }
+        return { supported: true };
+    }
+];
+
 const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','http','wireguard','hysteria2']);
 
 for (const protocol of protocols) {
@@ -89,7 +104,7 @@ for (const protocol of protocols) {
         declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
     }
     declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol), constraints: clashConstraintsFor(protocol) });
-    if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol) });
+    if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol), constraints: xrayConstraintsFor(protocol) });
     if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol) });
 }
 
