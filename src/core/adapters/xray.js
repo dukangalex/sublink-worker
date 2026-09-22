@@ -71,13 +71,9 @@ function buildStreamSettings(node) {
         const network = type === 'ws' ? 'websocket' : type === 'mkcp' ? 'mkcp' : type;
         out.method = network;
         if (network === 'websocket') out.wsSettings = pick(t, [
-            'path', 'headers', 'host', 'maxEarlyData', 'earlyDataHeaderName',
-            'acceptProxyProtocol', 'heartbeatPeriod'
+            'path', 'headers', 'host', 'heartbeatPeriod'
         ]);
-        if (network === 'grpc') out.grpcSettings = pick(t, [
-            'serviceName', 'multiMode', 'idleTimeout', 'healthCheckTimeout',
-            'permitWithoutStream'
-        ]);
+        if (network === 'grpc') out.grpcSettings = mapGrpcSettings(t);
         if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
         if (network === 'xhttp') out.xhttpSettings = pick(t, [
             'host', 'path', 'mode', 'noSSEHeader', 'xPaddingBytes', 'xPaddingObfsMode',
@@ -87,7 +83,10 @@ function buildStreamSettings(node) {
             'uplinkChunkSize', 'scMaxEachPostBytes', 'scMinPostsIntervalMs',
             'reuseSettings', 'downloadSettings'
         ]);
-        if (network === 'mkcp') out.kcpSettings = pick(t, ['mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity', 'congestion', 'readBufferSize', 'writeBufferSize', 'header', 'seed']);
+        if (network === 'mkcp') out.kcpSettings = pick(t, [
+            'mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity',
+            'cwndMultiplier', 'maxSendingWindow'
+        ]);
         if (network === 'hysteria') out.hysteriaSettings = pick(t, ['version', 'auth', 'up_mbps', 'down_mbps']);
     }
 
@@ -117,6 +116,19 @@ function buildStreamSettings(node) {
         }
     }
     return Object.keys(out).length ? out : undefined;
+}
+
+function mapGrpcSettings(transport) {
+    return prune({
+        authority: transport.authority,
+        serviceName: transport.serviceName,
+        multiMode: transport.multiMode,
+        user_agent: transport.userAgent,
+        idle_timeout: transport.idleTimeout,
+        health_check_timeout: transport.healthCheckTimeout,
+        permit_without_stream: transport.permitWithoutStream,
+        initial_windows_size: transport.initialWindowsSize
+    });
 }
 
 function normalizeMux(mux) {
