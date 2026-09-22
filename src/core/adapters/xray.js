@@ -68,7 +68,7 @@ function buildStreamSettings(node) {
 
     if (t.type) {
         const type = String(t.type).toLowerCase();
-        const network = type === 'ws' ? 'websocket' : type === 'mkcp' ? 'mkcp' : type;
+        const network = type === 'ws' ? 'websocket' : type === 'tcp' ? 'raw' : type === 'mkcp' ? 'mkcp' : type;
         out.method = network;
         if (network === 'websocket') out.wsSettings = pick(t, [
             'path', 'headers', 'host', 'heartbeatPeriod'
