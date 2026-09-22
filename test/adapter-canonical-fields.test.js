@@ -494,3 +494,61 @@ test('Mihomo maps ShadowTLS, ResTLS and JLS TLS carrier fields explicitly', () =
     });
     assert.deepEqual(output['jls-opts'], { username: 'jls-user', password: 'jls-pass' });
 });
+
+
+test('Mihomo maps REALITY ML-KEM capability and TLSMirror fields explicitly', () => {
+    const node = normalizeProxy({
+        name: 'vmess-tlsmirror',
+        type: 'vmess',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        tls: {
+            servername: 'example.com',
+            'reality-opts': {
+                'support-x25519mlkem768': true
+            },
+            'tlsmirror-opts': {
+                'primary-key': 'BASE64-KEY',
+                'explicit-nonce-ciphersuites': [4865, 4866],
+                'defer-instance-derived-write-time': {
+                    'base-nanoseconds': 100,
+                    'uniform-random-multiplier-nanoseconds': 20
+                },
+                'transport-layer-padding': { enabled: false },
+                'connection-enrolment': {
+                    'primary-ingress-outbound': 'ingress',
+                    'primary-egress-outbound': ''
+                },
+                'sequence-watermarking-enabled': false,
+                'embedded-traffic-generator': {
+                    steps: [{
+                        name: 'example',
+                        host: 'example.com',
+                        path: '/',
+                        method: 'GET',
+                        'connection-ready': true,
+                        'next-step': [{ weight: 1, 'goto-location': 0 }]
+                    }]
+                }
+            }
+        }
+    });
+
+    assert.equal(node.reality.supportX25519Mlkem768, true);
+    assert.equal(node.tls.tlsMirror.primaryKey, 'BASE64-KEY');
+    const output = toClash(node);
+    assert.equal(output['tlsmirror-opts']['primary-key'], 'BASE64-KEY');
+    assert.deepEqual(output['tlsmirror-opts']['explicit-nonce-ciphersuites'], [4865, 4866]);
+    assert.deepEqual(output['tlsmirror-opts']['defer-instance-derived-write-time'], {
+        'base-nanoseconds': 100,
+        'uniform-random-multiplier-nanoseconds': 20
+    });
+    assert.deepEqual(output['tlsmirror-opts']['connection-enrolment'], {
+        'primary-ingress-outbound': 'ingress',
+        'primary-egress-outbound': ''
+    });
+    assert.deepEqual(output['tlsmirror-opts']['embedded-traffic-generator'].steps[0]['next-step'], [
+        { weight: 1, 'goto-location': 0 }
+    ]);
+});
