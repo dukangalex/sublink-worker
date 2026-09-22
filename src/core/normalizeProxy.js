@@ -137,6 +137,39 @@ function normalizeProtocolOptions(input) {
         Object.entries({ ...input, ...options }).filter(([key]) => !reserved.has(key))
     );
 }
+\nfunction normalizeWireguardPeers(peers, input) {
+    const source = Array.isArray(peers) ? peers : [];
+    if (source.length) return source.map(normalizeWireguardPeer);
+
+    const peer = {
+        server: input.server,
+        port: input.server_port ?? input.port,
+        publicKey: input.peer_public_key ?? input.public_key ?? input['public-key'],
+        preSharedKey: input.pre_shared_key ?? input['pre-shared-key'],
+        allowedIPs: input.allowed_ips ?? input['allowed-ips'],
+        reserved: input.reserved,
+        persistentKeepalive: input.persistent_keepalive ?? input['persistent-keepalive']
+    };
+    return peer.publicKey || peer.server ? [normalizeWireguardPeer(peer)] : [];
+}
+
+function normalizeWireguardPeer(peer = {}) {
+    return {
+        ...peer,
+        address: firstDefined(peer.address, peer.server),
+        port: firstDefined(peer.port, peer.server_port),
+        publicKey: firstDefined(peer.publicKey, peer.public_key, peer['public-key']),
+        preSharedKey: firstDefined(peer.preSharedKey, peer.pre_shared_key, peer['pre-shared-key']),
+        allowedIPs: firstDefined(peer.allowedIPs, peer.allowed_ips, peer['allowed-ips']),
+        persistentKeepalive: firstDefined(
+            peer.persistentKeepalive,
+            peer.persistent_keepalive,
+            peer['persistent-keepalive'],
+            peer.keepAlive,
+            peer.keepalive
+        )
+    };
+}
 
 function firstDefined(...values) {
     return values.find(value => value !== undefined);
