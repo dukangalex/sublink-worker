@@ -58,8 +58,33 @@ test('sing-box emits client fingerprint through uTLS', () => {
     assert.equal(output.tls.clientFingerprint, undefined);
 });
 
+test('sing-box nests Reality inside TLS and uses explicit V2Ray transport fields', () => {
+    const node = normalizeProxy({
+        ...base,
+        reality_opts: {
+            public_key: 'reality-public-key',
+            short_id: '01234567'
+        },
+        network: 'grpc',
+        grpc_opts: {
+            service_name: 'grpc-service'
+        }
+    });
 
-it('does not leak canonical protocol option keys through sing-box', () => {
+    const output = toSingBox(node);
+    assert.deepEqual(output.tls.reality, {
+        enabled: true,
+        public_key: 'reality-public-key',
+        short_id: '01234567'
+    });
+    assert.deepEqual(output.transport, {
+        type: 'grpc',
+        service_name: 'grpc-service'
+    });
+    assert.equal(output.reality, undefined);
+});
+
+test('sing-box does not leak canonical protocol option keys', () => {
     const output = toSingBox({
         name: 'vmess',
         protocol: 'vmess',
@@ -67,15 +92,15 @@ it('does not leak canonical protocol option keys through sing-box', () => {
         credentials: { uuid: 'uuid' },
         protocolOptions: { security: 'auto', internalOnly: 'must-not-leak' }
     });
-    expect(output.security).toBe('auto');
-    expect(output.internalOnly).toBeUndefined();
+    assert.equal(output.security, 'auto');
+    assert.equal(output.internalOnly, undefined);
 });
 
-it('does not leak canonical protocol options through Xray fallback', () => {
-    expect(() => toXray({
+test('Xray does not expose a generic protocol option fallback', () => {
+    assert.throws(() => toXray({
         name: 'unknown',
         protocol: 'unknown',
         endpoint: { host: 'example.com', port: 443 },
         protocolOptions: { internalOnly: 'must-not-leak' }
-    })).toThrow('No explicit Xray adapter mapping');
+    }), /No explicit Xray adapter mapping/);
 });
