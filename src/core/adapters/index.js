@@ -68,7 +68,7 @@ const xrayFeaturesFor = (protocol) => ({
     multiplex: true
 });
 
-const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','http','wireguard','hysteria']);
+const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','http','wireguard','hysteria2']);
 
 for (const protocol of protocols) {
     declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
