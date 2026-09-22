@@ -68,10 +68,12 @@ const xrayFeaturesFor = (protocol) => ({
     multiplex: true
 });
 
+const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','http','wireguard','hysteria']);
+
 for (const protocol of protocols) {
     declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
     declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol) });
-    declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol) });
+    if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol) });
     if (surgeProtocols.has(protocol)) declareCapability(protocol, 'surge', { adapter: 'surge', features: surgeFeaturesFor(protocol) });
 }
 
