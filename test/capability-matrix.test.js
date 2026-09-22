@@ -135,4 +135,34 @@ describe('transport security compatibility constraints', () => {
         expect(result.supported).toBe(false);
         expect(result.reasons).toContain('Xray adapter requires Xray-specific ECH fields; canonical Mihomo/sing-box ECH cannot be mapped without changing semantics');
     });
+    it('rejects Mihomo TLS carrier fields on sing-box', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: {
+                serverName: 'example.com',
+                shadowTls: { version: 3, password: 'secret' }
+            }
+        }, 'singbox');
+
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain(
+            'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+        );
+    });
+
+    it('rejects Mihomo TLS carrier fields on Xray', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: {
+                serverName: 'example.com',
+                restls: { password: 'secret', versionHint: 'tls13' }
+            }
+        }, 'xray');
+
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain(
+            'Xray does not expose Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+        );
+    });
+
 });
