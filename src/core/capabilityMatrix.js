@@ -33,12 +33,12 @@ export function explainConversion(node, target) {
     }
 
     return {
+        ...entry,
         supported: reasons.length === 0,
         status: reasons.length ? 'unsupported' : degraded.length ? 'degraded' : 'supported',
         reasons,
-        warnings: degraded,
-        featureResults,
-        ...entry
+        warnings: [...(entry.warnings || []), ...degraded],
+        featureResults
     };
 }
 
