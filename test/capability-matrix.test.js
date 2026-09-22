@@ -41,6 +41,27 @@ describe('feature-level conversion capabilities', () => {
         ]);
     });
 
+    it('advertises Xray HTTPUpgrade, XHTTP, mKCP, WebSocket and gRPC for HTTP/VMess/VLESS/Trojan', () => {
+        for (const protocol of ['http', 'vmess', 'vless', 'trojan']) {
+            const result = explainConversion({
+                protocol,
+                transport: { type: 'httpupgrade' }
+            }, 'xray');
+            expect(result.supported).toBe(true);
+            expect(result.status).toBe('supported');
+        }
+    });
+
+    it('rejects Xray Hysteria transport without TLS', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            transport: { type: 'hysteria' }
+        }, 'xray');
+
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('Xray Hysteria transport requires TLS');
+    });
+
     it('does not advertise unsupported Xray protocols', () => {
         expect(explainConversion({ protocol: 'anytls' }, 'xray').status).toBe('unsupported');
         expect(explainConversion({ protocol: 'hysteria' }, 'xray').status).toBe('unsupported');
@@ -81,6 +102,17 @@ describe('transport security compatibility constraints', () => {
         }, 'clash');
 
         expect(result.supported).toBe(true);
+    });
+
+    it('accepts Xray Reality over RAW and canonical TCP transport', () => {
+        for (const type of ['raw', 'tcp']) {
+            const result = explainConversion({
+                protocol: 'vless',
+                reality: { publicKey: 'pk', shortId: 'sid' },
+                transport: { type }
+            }, 'xray');
+            expect(result.supported).toBe(true);
+        }
     });
 
     it('rejects Xray Reality over WebSocket', () => {
