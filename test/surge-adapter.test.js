@@ -54,3 +54,18 @@ test('rejects protocols Surge does not declare', () => {
     });
     assert.throws(() => toSurge(node), /No adapter capability/);
 });
+
+
+test('preserves Surge SOCKS5 UDP relay option', () => {
+    const node = normalizeProxy({
+        name: 'socks',
+        type: 'socks5',
+        server: 'example.com',
+        server_port: 1080,
+        username: 'u',
+        password: 'p',
+        udp_relay: true
+    });
+    const out = toSurge(node);
+    assert.match(out.line, /udp-relay=true/);
+});
