@@ -21,11 +21,16 @@ export function toSingBox(node) {
 }
 
 function toSingBoxTls(tls) {
-    const out = { ...tls };
-    if (out.serverName !== undefined) {
-        out.server_name = out.serverName;
-        delete out.serverName;
+    const out = {
+        enabled: tls.enabled !== false,
+        server_name: tls.serverName,
+        insecure: tls.insecure,
+        alpn: tls.alpn
+    };
+    if (tls.clientFingerprint || tls.fingerprint) {
+        out.utls = { enabled: true, fingerprint: tls.clientFingerprint ?? tls.fingerprint };
     }
+    if (tls.ech) out.ech = tls.ech;
     return out;
 }
 
