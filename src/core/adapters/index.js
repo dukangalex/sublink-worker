@@ -24,6 +24,18 @@ const singBoxFeatures = {
     udp_over_stream: true
 };
 
+const singBoxConstraintsFor = () => [
+    (node) => {
+        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls) {
+            return {
+                supported: false,
+                reason: 'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+            };
+        }
+        return { supported: true };
+    }
+];
+
 const baseClashFeatures = {
     tls: true,
     'tls.utls': true,
@@ -99,6 +111,12 @@ const xrayConstraintsFor = (protocol) => [
                 reason: 'Xray Hysteria transport requires TLS'
             };
         }
+        if (node.tls?.shadowTls || node.tls?.restls || node.tls?.jls) {
+            return {
+                supported: false,
+                reason: 'Xray does not expose Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+            };
+        }
         if (node.tls?.ech) {
             return {
                 supported: false,
@@ -135,7 +153,7 @@ const xrayProtocols = new Set(['shadowsocks','vmess','vless','trojan','socks','h
 
 for (const protocol of protocols) {
     if (protocol !== 'wireguard') {
-        declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures });
+        declareCapability(protocol, 'singbox', { adapter: 'generic', features: singBoxFeatures, constraints: singBoxConstraintsFor() });
     }
     declareCapability(protocol, 'clash', { adapter: 'mihomo', features: clashFeaturesFor(protocol), constraints: clashConstraintsFor(protocol) });
     if (xrayProtocols.has(protocol)) declareCapability(protocol, 'xray', { adapter: 'xray', features: xrayFeaturesFor(protocol), constraints: xrayConstraintsFor(protocol) });
