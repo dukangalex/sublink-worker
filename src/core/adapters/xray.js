@@ -75,14 +75,7 @@ function buildStreamSettings(node) {
         ]);
         if (network === 'grpc') out.grpcSettings = mapGrpcSettings(t);
         if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
-        if (network === 'xhttp') out.xhttpSettings = pick(t, [
-            'host', 'path', 'mode', 'noSSEHeader', 'xPaddingBytes', 'xPaddingObfsMode',
-            'xPaddingKey', 'xPaddingPlacement', 'xPaddingMethod', 'uplinkHTTPMethod',
-            'sessionPlacement', 'sessionKey', 'sessionTable', 'sessionLength',
-            'seqPlacement', 'seqKey', 'uplinkDataPlacement', 'uplinkDataKey',
-            'uplinkChunkSize', 'scMaxEachPostBytes', 'scMinPostsIntervalMs',
-            'reuseSettings', 'downloadSettings'
-        ]);
+        if (network === 'xhttp') out.xhttpSettings = mapXhttpSettings(t);
         if (network === 'mkcp') out.kcpSettings = pick(t, [
             'mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity',
             'cwndMultiplier', 'maxSendingWindow'
@@ -116,6 +109,34 @@ function buildStreamSettings(node) {
         }
     }
     return Object.keys(out).length ? out : undefined;
+}
+
+function mapXhttpSettings(transport) {
+    return prune({
+        path: transport.path,
+        host: transport.host,
+        mode: transport.mode,
+        headers: transport.headers,
+        no_grpc_header: transport.noGrpcHeader,
+        x_padding_bytes: transport.xPaddingBytes,
+        x_padding_obfs_mode: transport.xPaddingObfsMode,
+        x_padding_key: transport.xPaddingKey,
+        x_padding_header: transport.xPaddingHeader,
+        x_padding_placement: transport.xPaddingPlacement,
+        x_padding_method: transport.xPaddingMethod,
+        uplink_http_method: transport.uplinkHttpMethod,
+        session_placement: transport.sessionPlacement,
+        session_key: transport.sessionKey,
+        session_table: transport.sessionTable,
+        session_length: transport.sessionLength,
+        seq_placement: transport.seqPlacement,
+        seq_key: transport.seqKey,
+        uplink_data_placement: transport.uplinkDataPlacement,
+        uplink_data_key: transport.uplinkDataKey,
+        uplink_chunk_size: transport.uplinkChunkSize,
+        sc_max_each_post_bytes: transport.scMaxEachPostBytes,
+        sc_min_posts_interval_ms: transport.scMinPostsIntervalMs
+    });
 }
 
 function mapGrpcSettings(transport) {
