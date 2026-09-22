@@ -16,7 +16,7 @@ describe('feature-level conversion capabilities', () => {
         expect(explainConversion(node, 'singbox').supported).toBe(true);
     });
 
-    it('rejects unsupported XHTTP transport instead of silently dropping it', () => {
+    it('reports explicit unsupported status for XHTTP on sing-box', () => {
         const node = {
             protocol: 'vless',
             transport: { type: 'xhttp' }
@@ -25,6 +25,16 @@ describe('feature-level conversion capabilities', () => {
         const result = explainConversion(node, 'singbox');
 
         expect(result.supported).toBe(false);
+        expect(result.status).toBe('unsupported');
         expect(result.reasons).toContain('Target singbox does not support feature: transport.xhttp');
     });
 });
+
+    it('reports supported status for XHTTP on Xray', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            transport: { type: 'xhttp' }
+        }, 'xray');
+        expect(result.status).toBe('supported');
+        expect(result.featureResults).toEqual([{ feature: 'transport.xhttp', status: 'supported' }]);
+    });
