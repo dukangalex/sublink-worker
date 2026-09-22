@@ -51,3 +51,12 @@ it('does not advertise unsupported Xray protocols', () => {
 it('advertises Hysteria2 as the Xray Hysteria v2 protocol', () => {
     expect(explainConversion({ protocol: 'hysteria2' }, 'xray').status).toBe('supported');
 });
+
+
+it('surfaces the official sing-box WireGuard deprecation', () => {
+    const result = explainConversion({ protocol: 'wireguard' }, 'singbox');
+    expect(result.supported).toBe(true);
+    expect(result.warnings).toEqual(expect.arrayContaining([
+        expect.stringContaining('WireGuard outbound is deprecated in sing-box 1.11.0')
+    ]));
+});
