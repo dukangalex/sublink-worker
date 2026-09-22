@@ -114,6 +114,9 @@ function buildVmess(base, node) {
         certificate: node.tls?.certificate,
         'private-key': node.tls?.privateKey,
         'ech-opts': buildEchOptions(node.tls?.ech),
+        'shadow-tls-opts': buildShadowTlsOptions(node.tls?.shadowTls),
+        'restls-opts': buildRestlsOptions(node.tls?.restls),
+        'jls-opts': buildJlsOptions(node.tls?.jls),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
     };
@@ -313,6 +316,25 @@ function buildXhttpDownloadSettings(value) {
         headers: value.headers,
         'reuse-settings': buildXhttpReuseSettings(value.reuseSettings)
     });
+}
+
+function buildShadowTlsOptions(value) {
+    if (!value || typeof value !== 'object') return undefined;
+    return prune({ version: value.version, password: value.password });
+}
+
+function buildRestlsOptions(value) {
+    if (!value || typeof value !== 'object') return undefined;
+    return prune({
+        password: value.password,
+        'version-hint': value.versionHint,
+        'restls-script': value.restlsScript
+    });
+}
+
+function buildJlsOptions(value) {
+    if (!value || typeof value !== 'object') return undefined;
+    return prune({ username: value.username, password: value.password });
 }
 
 function buildEchOptions(ech) {
