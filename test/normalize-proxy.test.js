@@ -61,3 +61,83 @@ test('keeps protocol-specific options while removing top-level alias pollution',
     assert.equal(node.protocolOptions.packetEncoding, undefined);
     assert.equal(node.protocolOptions.server_name, undefined);
 });
+
+
+test('canonicalizes transport aliases for gRPC, WebSocket and XHTTP', () => {
+    const node = normalizeProxy({
+        type: 'vless',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        network: 'xhttp',
+        xhttp_opts: {
+            'x-padding-bytes': '100-200',
+            'no-grpc-header': true,
+            'session-placement': 'cookie',
+            'uplink-http-method': 'PUT',
+            'reuse-settings': {
+                'max-concurrency': '16-32',
+                'h-max-reusable-secs': '1800-3000'
+            },
+            'download-settings': {
+                path: '/download',
+                'reuse-settings': {
+                    'max-connections': '2'
+                }
+            }
+        }
+    });
+
+    assert.equal(node.transport.xPaddingBytes, '100-200');
+    assert.equal(node.transport.noGrpcHeader, true);
+    assert.equal(node.transport.sessionPlacement, 'cookie');
+    assert.equal(node.transport.uplinkHttpMethod, 'PUT');
+    assert.deepEqual(node.transport.reuseSettings, {
+        maxConcurrency: '16-32',
+        hMaxReusableSecs: '1800-3000'
+    });
+    assert.deepEqual(node.transport.downloadSettings, {
+        path: '/download',
+        reuseSettings: { maxConnections: '2' }
+    });
+    assert.equal(node.transport['x-padding-bytes'], undefined);
+    assert.equal(node.transport['reuse-settings'], undefined);
+});
+
+test('canonicalizes gRPC and WebSocket transport aliases', () => {
+    const grpc = normalizeProxy({
+        type: 'vless',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        network: 'grpc',
+        grpc_opts: {
+            'service-name': 'svc',
+            'grpc-user-agent': 'agent',
+            'ping-interval': 10,
+            'max-connections': 2
+        }
+    });
+    assert.equal(grpc.transport.serviceName, 'svc');
+    assert.equal(grpc.transport.userAgent, 'agent');
+    assert.equal(grpc.transport.pingInterval, 10);
+    assert.equal(grpc.transport.maxConnections, 2);
+
+    const ws = normalizeProxy({
+        type: 'vless',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        network: 'ws',
+        ws_opts: {
+            'max-early-data': 2048,
+            'early-data-header-name': 'Sec-WebSocket-Protocol',
+            'v2ray-http-upgrade': true,
+            'v2ray-http-upgrade-fast-open': true
+        }
+    });
+    assert.equal(ws.transport.maxEarlyData, 2048);
+    assert.equal(ws.transport.earlyDataHeaderName, 'Sec-WebSocket-Protocol');
+    assert.equal(ws.transport.v2rayHttpUpgrade, true);
+    assert.equal(ws.transport.v2rayHttpUpgradeFastOpen, true);
+});
