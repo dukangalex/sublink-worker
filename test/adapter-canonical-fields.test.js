@@ -505,9 +505,11 @@ test('Mihomo maps REALITY ML-KEM capability and TLSMirror fields explicitly', ()
         uuid: '00000000-0000-0000-0000-000000000001',
         tls: {
             servername: 'example.com',
-            'reality-opts': {
-                'support-x25519mlkem768': true
-            },
+        reality_opts: {
+            'support-x25519mlkem768': true
+        },
+        tls: {
+            servername: 'example.com',
             'tlsmirror-opts': {
                 'primary-key': 'BASE64-KEY',
                 'explicit-nonce-ciphersuites': [4865, 4866],
