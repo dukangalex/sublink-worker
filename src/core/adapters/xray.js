@@ -44,7 +44,7 @@ function buildSettings(node) {
         case 'hysteria2':
             return { version: 2, address: node.endpoint.host, port: node.endpoint.port };
         default:
-            return { address: node.endpoint.host, port: node.endpoint.port, ...o };
+            throw new Error(`No explicit Xray adapter mapping for protocol: ${node.protocol}`);
     }
 }
 
@@ -69,7 +69,7 @@ function buildStreamSettings(node) {
     if (t.type) {
         const type = String(t.type).toLowerCase();
         const network = type === 'ws' ? 'websocket' : type === 'mkcp' ? 'mkcp' : type;
-        out.network = network;
+        out.method = network;
         if (network === 'websocket') out.wsSettings = pick(t, ['path', 'headers', 'host']);
         if (network === 'grpc') out.grpcSettings = pick(t, ['serviceName', 'multiMode']);
         if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
@@ -83,7 +83,7 @@ function buildStreamSettings(node) {
     }
 
     if (node.protocol === 'hysteria2') {
-        out.network = 'hysteria';
+        out.method = 'hysteria';
         out.hysteriaSettings = { version: 2, auth: node.credentials?.password };
     }
 
