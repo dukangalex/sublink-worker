@@ -145,7 +145,7 @@ describe('transport security compatibility constraints', () => {
 
         expect(result.supported).toBe(false);
         expect(result.reasons).toContain(
-            'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+            'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, JLS, or TLSMirror outbound fields; conversion would drop TLS carrier behavior'
         );
     });
 
@@ -160,7 +160,7 @@ describe('transport security compatibility constraints', () => {
 
         expect(result.supported).toBe(false);
         expect(result.reasons).toContain(
-            'Xray does not expose Mihomo ShadowTLS, ResTLS, or JLS outbound fields; conversion would drop TLS carrier behavior'
+            'Xray does not expose Mihomo ShadowTLS, ResTLS, JLS, or TLSMirror outbound fields; conversion would drop TLS carrier behavior'
         );
     });
 
