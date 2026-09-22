@@ -77,15 +77,94 @@ function normalizeTransport(input) {
 
 function normalizeTransportObject(transport) {
     const type = transport.type || transport.network;
-    return {
-        ...transport,
-        ...(type ? { type: String(type).toLowerCase() } : {}),
-        path: transport.path,
-        headers: transport.headers,
-        host: transport.host,
-        serviceName: transport.serviceName ?? transport.service_name,
-        multiMode: transport.multiMode ?? transport.multi_mode
+    const source = transport;
+    const aliases = {
+        serviceName: ['serviceName', 'service_name', 'service-name'],
+        multiMode: ['multiMode', 'multi_mode', 'multi-mode'],
+        userAgent: ['userAgent', 'user_agent', 'grpcUserAgent', 'grpc-user-agent'],
+        pingInterval: ['pingInterval', 'ping_interval', 'ping-interval'],
+        maxConnections: ['maxConnections', 'max_connections', 'max-connections'],
+        minStreams: ['minStreams', 'min_streams', 'min-streams'],
+        maxStreams: ['maxStreams', 'max_streams', 'max-streams'],
+        maxEarlyData: ['maxEarlyData', 'max_early_data', 'max-early-data'],
+        earlyDataHeaderName: ['earlyDataHeaderName', 'early_data_header_name', 'early-data-header-name'],
+        v2rayHttpUpgrade: ['v2rayHttpUpgrade', 'v2ray_http_upgrade', 'v2ray-http-upgrade'],
+        v2rayHttpUpgradeFastOpen: ['v2rayHttpUpgradeFastOpen', 'v2ray_http_upgrade_fast_open', 'v2ray-http-upgrade-fast-open'],
+        noGrpcHeader: ['noGrpcHeader', 'no_grpc_header', 'no-grpc-header'],
+        xPaddingBytes: ['xPaddingBytes', 'x_padding_bytes', 'x-padding-bytes'],
+        xPaddingObfsMode: ['xPaddingObfsMode', 'x_padding_obfs_mode', 'x-padding-obfs-mode'],
+        xPaddingKey: ['xPaddingKey', 'x_padding_key', 'x-padding-key'],
+        xPaddingHeader: ['xPaddingHeader', 'x_padding_header', 'x-padding-header'],
+        xPaddingPlacement: ['xPaddingPlacement', 'x_padding_placement', 'x-padding-placement'],
+        xPaddingMethod: ['xPaddingMethod', 'x_padding_method', 'x-padding-method'],
+        uplinkHttpMethod: ['uplinkHttpMethod', 'uplink_http_method', 'uplink-http-method'],
+        sessionPlacement: ['sessionPlacement', 'session_placement', 'session-placement'],
+        sessionKey: ['sessionKey', 'session_key', 'session-key'],
+        sessionTable: ['sessionTable', 'session_table', 'session-table'],
+        sessionLength: ['sessionLength', 'session_length', 'session-length'],
+        seqPlacement: ['seqPlacement', 'seq_placement', 'seq-placement'],
+        seqKey: ['seqKey', 'seq_key', 'seq-key'],
+        uplinkDataPlacement: ['uplinkDataPlacement', 'uplink_data_placement', 'uplink-data-placement'],
+        uplinkDataKey: ['uplinkDataKey', 'uplink_data_key', 'uplink-data-key'],
+        uplinkChunkSize: ['uplinkChunkSize', 'uplink_chunk_size', 'uplink-chunk-size'],
+        scMaxEachPostBytes: ['scMaxEachPostBytes', 'sc_max_each_post_bytes', 'sc-max-each-post-bytes'],
+        scMinPostsIntervalMs: ['scMinPostsIntervalMs', 'sc_min_posts_interval_ms', 'sc-min-posts-interval-ms'],
+        reuseSettings: ['reuseSettings', 'reuse_settings', 'reuse-settings'],
+        downloadSettings: ['downloadSettings', 'download_settings', 'download-settings']
     };
+
+    const out = {
+        ...source,
+        ...(type ? { type: String(type).toLowerCase() } : {}),
+        path: source.path,
+        headers: source.headers,
+        host: source.host
+    };
+
+    for (const [canonical, keys] of Object.entries(aliases)) {
+        const value = firstDefined(...keys.map(key => source[key]));
+        if (value !== undefined) out[canonical] = value;
+    }
+
+    if (out.reuseSettings && typeof out.reuseSettings === 'object') {
+        out.reuseSettings = normalizeXhttpReuseSettings(out.reuseSettings);
+    }
+    if (out.downloadSettings && typeof out.downloadSettings === 'object') {
+        out.downloadSettings = normalizeXhttpDownloadSettings(out.downloadSettings);
+    }
+
+    return pruneAliases(out, Object.values(aliases).flat().filter(key => !Object.values(aliases).some(keys => keys[0] === key)));
+}
+
+function normalizeXhttpReuseSettings(value) {
+    return normalizeFieldAliases(value, {
+        maxConcurrency: ['maxConcurrency', 'max_concurrency', 'max-concurrency'],
+        maxConnections: ['maxConnections', 'max_connections', 'max-connections'],
+        cMaxReuseTimes: ['cMaxReuseTimes', 'c_max_reuse_times', 'c-max-reuse-times'],
+        hMaxRequestTimes: ['hMaxRequestTimes', 'h_max_request_times', 'h-max-request-times'],
+        hMaxReusableSecs: ['hMaxReusableSecs', 'h_max_reusable_secs', 'h-max-reusable-secs'],
+        hKeepAlivePeriod: ['hKeepAlivePeriod', 'h_keep_alive_period', 'h-keep-alive-period']
+    });
+}
+
+function normalizeXhttpDownloadSettings(value) {
+    const out = { ...value };
+    if (value.reuseSettings || value.reuse_settings || value['reuse-settings']) {
+        out.reuseSettings = normalizeXhttpReuseSettings(value.reuseSettings ?? value.reuse_settings ?? value['reuse-settings']);
+        delete out.reuse_settings;
+        delete out['reuse-settings'];
+    }
+    return out;
+}
+
+function normalizeFieldAliases(value, aliases) {
+    const out = { ...value };
+    for (const [canonical, keys] of Object.entries(aliases)) {
+        const resolved = firstDefined(...keys.map(key => value[key]));
+        if (resolved !== undefined) out[canonical] = resolved;
+        for (const key of keys) if (key !== canonical) delete out[key];
+    }
+    return out;
 }
 
 function normalizeReality(input) {
