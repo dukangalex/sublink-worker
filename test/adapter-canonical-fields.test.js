@@ -161,3 +161,63 @@ test('Mihomo maps VLESS XHTTP fields explicitly', () => {
     });
     assert.equal(output['xhttp-opts'].serviceName, undefined);
 });
+
+
+test('Mihomo maps canonical VLESS TLS fields and nested XHTTP settings', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            ...base.tls,
+            fingerprint: 'sha256-cert-fingerprint',
+            alpn: ['h2']
+        },
+        network: 'xhttp',
+        xhttp_opts: {
+            'reuse-settings': {
+                'max-concurrency': '16-32',
+                'h-keep-alive-period': 0
+            },
+            'download-settings': {
+                path: '/download',
+                'reuse-settings': {
+                    'max-connections': '2'
+                }
+            }
+        }
+    });
+
+    const output = toClash(node);
+    assert.deepEqual(output.alpn, ['h2']);
+    assert.equal(output.fingerprint, 'sha256-cert-fingerprint');
+    assert.deepEqual(output['xhttp-opts']['reuse-settings'], {
+        'max-concurrency': '16-32',
+        'h-keep-alive-period': 0
+    });
+    assert.deepEqual(output['xhttp-opts']['download-settings'], {
+        path: '/download',
+        'reuse-settings': { 'max-connections': '2' }
+    });
+});
+
+test('Mihomo maps canonical WebSocket transport options', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'ws',
+        ws_opts: {
+            'max-early-data': 2048,
+            'early-data-header-name': 'Sec-WebSocket-Protocol',
+            'v2ray-http-upgrade': true,
+            'v2ray-http-upgrade-fast-open': true
+        }
+    });
+
+    const output = toClash(node);
+    assert.deepEqual(output['ws-opts'], {
+        path: undefined,
+        headers: undefined,
+        'max-early-data': 2048,
+        'early-data-header-name': 'Sec-WebSocket-Protocol',
+        'v2ray-http-upgrade': true,
+        'v2ray-http-upgrade-fast-open': true
+    });
+});
