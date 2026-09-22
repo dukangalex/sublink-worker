@@ -219,3 +219,85 @@ test('Mihomo maps canonical WebSocket transport options', () => {
         'v2ray-http-upgrade-fast-open': true
     });
 });
+
+
+test('Xray maps canonical gRPC fields to the current wire keys', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'grpc',
+        grpc_opts: {
+            'service-name': 'grpc-service',
+            'grpc-user-agent': 'agent',
+            'idle-timeout': 60,
+            'health-check-timeout': 20,
+            'permit-without-stream': true,
+            'initial-windows-size': 65536
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.grpcSettings, {
+        serviceName: 'grpc-service',
+        user_agent: 'agent',
+        idle_timeout: 60,
+        health_check_timeout: 20,
+        permit_without_stream: true,
+        initial_windows_size: 65536
+    });
+});
+
+test('Xray maps only current mKCP fields and rejects removed legacy fields', () => {
+    const node = normalizeProxy({
+        ...base,
+        type: 'vmess',
+        network: 'mkcp',
+        mkcp_opts: {
+            mtu: 1350,
+            tti: 50,
+            'uplink-capacity': 5,
+            'downlink-capacity': 20,
+            congestion: false
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.kcpSettings, {
+        mtu: 1350,
+        tti: 50,
+        uplinkCapacity: 5,
+        downlinkCapacity: 20
+    });
+    assert.equal(output.streamSettings.kcpSettings.congestion, undefined);
+});
+
+test('Xray rejects Mihomo-specific WebSocket transport fields instead of dropping them', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'ws',
+        ws_opts: {
+            'max-early-data': 2048
+        }
+    });
+
+    assert.throws(
+        () => toXray(node),
+        /Xray WebSocket does not expose Mihomo-specific early-data/
+    );
+});
+
+test('Xray rejects removed mKCP fields instead of dropping them', () => {
+    const node = normalizeProxy({
+        ...base,
+        type: 'vmess',
+        network: 'mkcp',
+        mkcp_opts: {
+            mtu: 1350,
+            'read-buffer': 2097152
+        }
+    });
+
+    assert.throws(
+        () => toXray(node),
+        /Current Xray mKCP no longer supports read\/write buffers/
+    );
+});
