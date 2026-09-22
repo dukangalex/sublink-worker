@@ -7,3 +7,4 @@ export { parseAndNormalize, parseAndNormalizeMany } from './parseAndNormalize.js
 export { declareCapability, canConvert, explainConversion, getCapabilityMatrix, getNodeFeatures } from './capabilityMatrix.js';
 export { toSingBox } from './adapters/singbox.js';
 export { toClash } from './adapters/clash.js';
+export { toXray } from './adapters/xray.js';
