@@ -117,6 +117,7 @@ function buildVmess(base, node) {
         'shadow-tls-opts': buildShadowTlsOptions(node.tls?.shadowTls),
         'restls-opts': buildRestlsOptions(node.tls?.restls),
         'jls-opts': buildJlsOptions(node.tls?.jls),
+        'tlsmirror-opts': buildTlsMirrorOptions(node.tls?.tlsMirror),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
     };
@@ -149,7 +150,8 @@ function buildVless(base, node) {
         const reality = node.reality || node.tls.reality;
         out['reality-opts'] = {
             'public-key': reality.public_key ?? reality.publicKey,
-            'short-id': reality.short_id ?? reality.shortId
+            'short-id': reality.short_id ?? reality.shortId,
+            'support-x25519mlkem768': reality.supportX25519Mlkem768
         };
     }
     return applyTransport(out, node.transport);
@@ -345,6 +347,51 @@ function buildRestlsOptions(value) {
 function buildJlsOptions(value) {
     if (!value || typeof value !== 'object') return undefined;
     return prune({ username: value.username, password: value.password });
+}
+
+function buildTlsMirrorOptions(value) {
+    if (!value || typeof value !== 'object') return undefined;
+    return prune({
+        'primary-key': value.primaryKey,
+        'explicit-nonce-ciphersuites': value.explicitNonceCiphersuites,
+        'defer-instance-derived-write-time': value.deferInstanceDerivedWriteTime ? {
+            'base-nanoseconds': value.deferInstanceDerivedWriteTime.baseNanoseconds,
+            'uniform-random-multiplier-nanoseconds': value.deferInstanceDerivedWriteTime.uniformRandomMultiplierNanoseconds
+        } : undefined,
+        'transport-layer-padding': value.transportLayerPadding ? {
+            enabled: value.transportLayerPadding.enabled
+        } : undefined,
+        'connection-enrolment': value.connectionEnrolment ? {
+            'primary-ingress-outbound': value.connectionEnrolment.primaryIngressOutbound,
+            'primary-egress-outbound': value.connectionEnrolment.primaryEgressOutbound
+        } : undefined,
+        'sequence-watermarking-enabled': value.sequenceWatermarkingEnabled,
+        'embedded-traffic-generator': value.embeddedTrafficGenerator ? {
+            steps: Array.isArray(value.embeddedTrafficGenerator.steps)
+                ? value.embeddedTrafficGenerator.steps.map(step => prune({
+                    name: step.name,
+                    host: step.host,
+                    path: step.path,
+                    method: step.method,
+                    headers: Array.isArray(step.headers) ? step.headers.map(header => prune({
+                        name: header?.name,
+                        value: header?.value,
+                        values: header?.values
+                    })) : undefined,
+                    'connection-ready': step.connectionReady,
+                    'connection-recall-exit': step.connectionRecallExit,
+                    'h2-do-not-wait-for-download-finish': step.h2DoNotWaitForDownloadFinish,
+                    'wait-time': step.waitTime ? {
+                        'base-nanoseconds': step.waitTime.baseNanoseconds,
+                        'uniform-random-multiplier-nanoseconds': step.waitTime.uniformRandomMultiplierNanoseconds
+                    } : undefined,
+                    'next-step': Array.isArray(step.nextStep) ? step.nextStep.map(next => prune({
+                        weight: next?.weight,
+                        'goto-location': next?.gotoLocation
+                    })) : undefined
+                })) : undefined
+        } : undefined
+    });
 }
 
 function buildEchOptions(ech) {
