@@ -95,7 +95,7 @@ export function toClash(node) {
                 'skip-cert-verify': Boolean(node.tls?.insecure)
             });
         default:
-            return prune({ ...base, ...node.protocolOptions, ...node.credentials });
+            throw new Error(`No explicit Mihomo adapter mapping for protocol: ${node.protocol}`);
     }
 }
 
@@ -107,6 +107,7 @@ function buildVmess(base, node) {
         cipher: node.protocolOptions.security || 'auto',
         tls: Boolean(node.tls),
         servername: node.tls?.serverName,
+        fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
         network: node.transport?.type || 'tcp',
@@ -145,6 +146,7 @@ function buildTlsProxy(base, node, extra = {}) {
         tls: true,
         sni: node.tls?.serverName,
         'skip-cert-verify': Boolean(node.tls?.insecure),
+        fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         alpn: node.tls?.alpn,
         udp: node.protocolOptions.udp ?? true
@@ -216,11 +218,42 @@ function applyTransport(out, transport) {
             host: transport.host
         };
     } else if (type === 'grpc') {
-        out['grpc-opts'] = {
-            'grpc-service-name': transport.service_name
-        };
+        out['grpc-opts'] = prune({
+            'grpc-service-name': transport.serviceName ?? transport.service_name,
+            'grpc-user-agent': transport.userAgent ?? transport.grpcUserAgent ?? transport['grpc-user-agent'],
+            'ping-interval': transport.pingInterval ?? transport['ping-interval'],
+            'max-connections': transport.maxConnections ?? transport['max-connections'],
+            'min-streams': transport.minStreams ?? transport['min-streams'],
+            'max-streams': transport.maxStreams ?? transport['max-streams']
+        });
     } else if (type === 'xhttp') {
-        out['xhttp-opts'] = transport.xhttp_opts || transport.options;
+        out['xhttp-opts'] = prune({
+            path: transport.path,
+            host: transport.host,
+            mode: transport.mode,
+            headers: transport.headers,
+            'no-grpc-header': transport.noGrpcHeader ?? transport.no_grpc_header ?? transport['no-grpc-header'],
+            'x-padding-bytes': transport.xPaddingBytes ?? transport.x_padding_bytes ?? transport['x-padding-bytes'],
+            'x-padding-obfs-mode': transport.xPaddingObfsMode ?? transport.x_padding_obfs_mode ?? transport['x-padding-obfs-mode'],
+            'x-padding-key': transport.xPaddingKey ?? transport.x_padding_key ?? transport['x-padding-key'],
+            'x-padding-header': transport.xPaddingHeader ?? transport.x_padding_header ?? transport['x-padding-header'],
+            'x-padding-placement': transport.xPaddingPlacement ?? transport.x_padding_placement ?? transport['x-padding-placement'],
+            'x-padding-method': transport.xPaddingMethod ?? transport.x_padding_method ?? transport['x-padding-method'],
+            'uplink-http-method': transport.uplinkHttpMethod ?? transport.uplink_http_method ?? transport['uplink-http-method'],
+            'session-placement': transport.sessionPlacement ?? transport.session_placement ?? transport['session-placement'],
+            'session-key': transport.sessionKey ?? transport.session_key ?? transport['session-key'],
+            'session-table': transport.sessionTable ?? transport.session_table ?? transport['session-table'],
+            'session-length': transport.sessionLength ?? transport.session_length ?? transport['session-length'],
+            'seq-placement': transport.seqPlacement ?? transport.seq_placement ?? transport['seq-placement'],
+            'seq-key': transport.seqKey ?? transport.seq_key ?? transport['seq-key'],
+            'uplink-data-placement': transport.uplinkDataPlacement ?? transport.uplink_data_placement ?? transport['uplink-data-placement'],
+            'uplink-data-key': transport.uplinkDataKey ?? transport.uplink_data_key ?? transport['uplink-data-key'],
+            'uplink-chunk-size': transport.uplinkChunkSize ?? transport.uplink_chunk_size ?? transport['uplink-chunk-size'],
+            'sc-max-each-post-bytes': transport.scMaxEachPostBytes ?? transport.sc_max_each_post_bytes ?? transport['sc-max-each-post-bytes'],
+            'sc-min-posts-interval-ms': transport.scMinPostsIntervalMs ?? transport.sc_min_posts_interval_ms ?? transport['sc-min-posts-interval-ms'],
+            'reuse-settings': transport.reuseSettings ?? transport.reuse_settings ?? transport['reuse-settings'],
+            'download-settings': transport.downloadSettings ?? transport.download_settings ?? transport['download-settings']
+        });
     }
     return out;
 }
