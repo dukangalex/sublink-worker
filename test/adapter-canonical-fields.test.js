@@ -29,6 +29,8 @@ test('Xray Reality maps canonical publicKey to current password field', () => {
     });
 
     const output = toXray(node);
+    assert.equal(output.streamSettings.method, 'grpc');
+    assert.equal(output.streamSettings.network, undefined);
     assert.equal(output.streamSettings.security, 'reality');
     assert.equal(output.streamSettings.realitySettings.password, 'reality-public-key');
     assert.equal(output.streamSettings.realitySettings.shortId, '01234567');
@@ -103,4 +105,59 @@ test('Xray does not expose a generic protocol option fallback', () => {
         endpoint: { host: 'example.com', port: 443 },
         protocolOptions: { internalOnly: 'must-not-leak' }
     }), /No explicit Xray adapter mapping/);
+});
+
+
+test('Mihomo maps canonical gRPC serviceName to grpc-service-name', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'grpc',
+        grpc_opts: {
+            service_name: 'grpc-service'
+        }
+    });
+
+    const output = toClash(node);
+    assert.equal(output.network, 'grpc');
+    assert.equal(output['grpc-opts']['grpc-service-name'], 'grpc-service');
+    assert.equal(output['grpc-opts'].serviceName, undefined);
+});
+
+test('Mihomo maps VLESS XHTTP fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'xhttp',
+        xhttp_opts: {
+            path: '/xhttp',
+            host: 'cdn.example.com',
+            mode: 'stream-one',
+            headers: { 'X-Test': '1' },
+            'x-padding-bytes': '100-200',
+            'x-padding-obfs-mode': true,
+            'x-padding-key': 'x_padding',
+            'x-padding-placement': 'query',
+            'x-padding-method': 'tokenish',
+            'uplink-http-method': 'PUT',
+            'session-placement': 'cookie',
+            'session-key': 'sid'
+        }
+    });
+
+    const output = toClash(node);
+    assert.equal(output.network, 'xhttp');
+    assert.deepEqual(output['xhttp-opts'], {
+        path: '/xhttp',
+        host: 'cdn.example.com',
+        mode: 'stream-one',
+        headers: { 'X-Test': '1' },
+        'x-padding-bytes': '100-200',
+        'x-padding-obfs-mode': true,
+        'x-padding-key': 'x_padding',
+        'x-padding-placement': 'query',
+        'x-padding-method': 'tokenish',
+        'uplink-http-method': 'PUT',
+        'session-placement': 'cookie',
+        'session-key': 'sid'
+    });
+    assert.equal(output['xhttp-opts'].serviceName, undefined);
 });
