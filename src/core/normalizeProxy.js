@@ -29,7 +29,10 @@ function normalizeTls(input) {
     const hasTls = input.tls !== undefined || Object.keys(source).length > 0 ||
         input.servername !== undefined || input.sni !== undefined ||
         input.server_name !== undefined || input.skip_cert_verify !== undefined ||
-        input.client_fingerprint !== undefined || input.clientFingerprint !== undefined;
+        input.client_fingerprint !== undefined || input.clientFingerprint !== undefined ||
+        source['shadow-tls-opts'] !== undefined || source.shadowTlsOpts !== undefined ||
+        source['restls-opts'] !== undefined || source.restlsOpts !== undefined ||
+        source['jls-opts'] !== undefined || source.jlsOpts !== undefined;
 
     if (!hasTls) return undefined;
 
@@ -54,6 +57,9 @@ function normalizeTls(input) {
             input.client_fingerprint
         ),
         ech: normalizeEch(source.ech, source['ech-opts'], source.ech_opts),
+        shadowTls: normalizeShadowTls(source.shadowTls, source['shadow-tls-opts'], source.shadow_tls_opts),
+        restls: normalizeRestls(source.restls, source['restls-opts'], source.restls_opts),
+        jls: normalizeJls(source.jls, source['jls-opts'], source.jls_opts),
         nameCertVerify: firstDefined(source.nameCertVerify, source.name_cert_verify, source['name-cert-verify']),
         certificate: firstDefined(source.certificate, source.cert),
         privateKey: firstDefined(source.privateKey, source.private_key, source['private-key']),
@@ -91,6 +97,34 @@ function normalizeEch(...values) {
         enabled: firstDefined(source.enabled, source.enable),
         config: firstDefined(source.config, source.configList, source.config_list),
         queryServerName: firstDefined(source.queryServerName, source.query_server_name, source['query-server-name'])
+    };
+}
+
+function normalizeShadowTls(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return pruneAliases({
+        version: firstDefined(source.version),
+        password: firstDefined(source.password)
+    }, ['version']);
+}
+
+function normalizeRestls(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        password: firstDefined(source.password),
+        versionHint: firstDefined(source.versionHint, source.version_hint, source['version-hint']),
+        restlsScript: firstDefined(source.restlsScript, source.restls_script, source['restls-script'])
+    };
+}
+
+function normalizeJls(...values) {
+    const source = Object.assign({}, ...values.filter(value => value && typeof value === 'object'));
+    if (!Object.keys(source).length) return undefined;
+    return {
+        username: firstDefined(source.username),
+        password: firstDefined(source.password)
     };
 }
 
