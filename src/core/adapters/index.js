@@ -99,6 +99,12 @@ const xrayConstraintsFor = (protocol) => [
                 reason: 'Xray Hysteria transport requires TLS'
             };
         }
+        if (node.tls?.ech) {
+            return {
+                supported: false,
+                reason: 'Xray adapter requires Xray-specific ECH fields; canonical Mihomo/sing-box ECH cannot be mapped without changing semantics'
+            };
+        }
         if (normalized === 'websocket' && (
             node.transport?.maxEarlyData !== undefined ||
             node.transport?.earlyDataHeaderName !== undefined ||
