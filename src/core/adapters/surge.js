@@ -102,15 +102,16 @@ function buildWireGuard(node, name) {
     const section = [
         `[WireGuard ${escapeSection(sectionName)}]`,
         `private-key = ${node.credentials?.private_key || ''}`,
-        `self-ip = ${o.local_address || o.address || ''}`,
-        ...peers.filter(Boolean).map(peer => {
-            const lines = [];
-            if (peer.public_key || peer.publicKey) lines.push(`peer = public-key=${peer.public_key || peer.publicKey}`);
-            if (peer.endpoint) lines.push(`endpoint = ${peer.endpoint}`);
-            if (peer.allowed_ips || peer.allowedIPs) lines.push(`allowed-ips = ${join(peer.allowed_ips || peer.allowedIPs)}`);
-            if (peer.pre_shared_key || peer.preshared_key) lines.push(`preshared-key = ${peer.pre_shared_key || peer.preshared_key}`);
-            return lines.join('\\n');
-        })
+        `self-ip = ${stripCidr(o.local_address || o.address || '')}`,
+        `peer = ${peers.filter(Boolean).map(peer => {
+            const fields = [];
+            if (peer.public_key || peer.publicKey) fields.push(`public-key = ${peer.public_key || peer.publicKey}`);
+            if (peer.endpoint) fields.push(`endpoint = ${peer.endpoint}`);
+            if (peer.allowed_ips || peer.allowedIPs) fields.push(`allowed-ips = ${quoteIfComma(join(peer.allowed_ips || peer.allowedIPs))}`);
+            if (peer.pre_shared_key || peer.preshared_key) fields.push(`preshared-key = ${peer.pre_shared_key || peer.preshared_key}`);
+            if (peer.keepalive !== undefined) fields.push(`keepalive = ${peer.keepalive}`);
+            return `(${fields.join(', ')})`;
+        }).join(', ')}\``
     ].filter(Boolean).join('\\n');
 
     return {
@@ -143,6 +144,6 @@ function escapeToken(value) {
     return String(value).replace(/[,=]/g, '_');
 }
 
-function escapeSection(value) {
+function stripCidr(value) { return String(value || '').split('/')[0]; }\n\nfunction quoteIfComma(value) { return String(value).includes(',') ? `"${String(value).replace(/"/g, '\\\"')}"` : value; }\n\nfunction escapeSection(value) {
     return String(value).replace(/[\\\n\r]/g, '_');
 }
