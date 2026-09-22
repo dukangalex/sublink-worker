@@ -74,11 +74,11 @@ const xrayFeaturesFor = (protocol) => ({
     tls: true,
     'tls.utls': true,
     'tls.reality': true,
-    'transport.ws': protocol === 'vless' || protocol === 'vmess' || protocol === 'trojan',
-    'transport.grpc': protocol === 'vless' || protocol === 'vmess' || protocol === 'trojan',
-    'transport.httpupgrade': protocol === 'vless' || protocol === 'vmess',
-    'transport.xhttp': protocol === 'vless' || protocol === 'vmess',
-    'transport.mkcp': protocol === 'vmess',
+    'transport.ws': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
+    'transport.grpc': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
+    'transport.httpupgrade': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
+    'transport.xhttp': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
+    'transport.mkcp': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
     multiplex: true
 });
 
@@ -93,8 +93,11 @@ const xrayConstraintsFor = (protocol) => [
                 reason: 'Xray REALITY is only compatible with RAW, XHTTP, and gRPC; got ' + normalized + ' for ' + protocol
             };
         }
-        if (node.tls && normalized === 'hysteria') {
-            return { supported: true };
+        if (normalized === 'hysteria' && !node.tls && !reality) {
+            return {
+                supported: false,
+                reason: 'Xray Hysteria transport requires TLS'
+            };
         }
         if (normalized === 'websocket' && (
             node.transport?.maxEarlyData !== undefined ||
