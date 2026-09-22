@@ -232,6 +232,27 @@ function applyTransport(out, transport) {
             'min-streams': transport.minStreams ?? transport['min-streams'],
             'max-streams': transport.maxStreams ?? transport['max-streams']
         });
+    } else if (type === 'mkcp') {
+        out['mkcp-opts'] = prune({
+            mtu: transport.mtu,
+            tti: transport.tti,
+            'uplink-capacity': transport.uplinkCapacity,
+            'downlink-capacity': transport.downlinkCapacity,
+            congestion: transport.congestion,
+            'write-buffer': transport.writeBuffer,
+            'read-buffer': transport.readBuffer,
+            seed: transport.seed,
+            header: transport.header
+        });
+    } else if (type === 'mekya') {
+        out['mekya-opts'] = prune({
+            url: transport.url,
+            'max-write-delay': transport.maxWriteDelay,
+            'max-request-size': transport.maxRequestSize,
+            'polling-interval-initial': transport.pollingIntervalInitial,
+            'h2-pool-size': transport.h2PoolSize,
+            kcp: transport.kcp
+        });
     } else if (type === 'xhttp') {
         out['xhttp-opts'] = prune({
             path: transport.path,
