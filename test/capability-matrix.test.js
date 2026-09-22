@@ -127,21 +127,12 @@ describe('transport security compatibility constraints', () => {
     });
 });
 
-
     it('rejects generic ECH when converting to Xray', () => {
         const result = explainConversion({
             protocol: 'vless',
-            tls: {
-                serverName: 'example.com',
-                ech: {
-                    enabled: true,
-                    config: 'ECH-CONFIG'
-                }
-            }
+            tls: { serverName: 'example.com', ech: { enabled: true, config: 'ECH-CONFIG' } }
         }, 'xray');
-
         expect(result.supported).toBe(false);
-        expect(result.reasons).toContain(
-            'Xray adapter requires Xray-specific ECH fields; canonical Mihomo/sing-box ECH cannot be mapped without changing semantics'
-        );
+        expect(result.reasons).toContain('Xray adapter requires Xray-specific ECH fields; canonical Mihomo/sing-box ECH cannot be mapped without changing semantics');
     });
+});
