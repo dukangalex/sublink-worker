@@ -11,21 +11,49 @@ export function createProxyNode(input = {}) {
         tls: input.tls ? normalizeTls(input.tls) : null,
         transport: input.transport ? { ...input.transport } : null,
         obfs: input.obfs ? { ...input.obfs } : null,
-        reality: input.reality ? { ...input.reality } : null,
+        reality: input.reality ? normalizeReality(input.reality) : null,
         protocolOptions: { ...(input.protocolOptions || extractProtocolOptions(input)) },
         metadata: { ...(input.metadata || {}) }
     });
 }
 
 function normalizeTls(tls) {
-    return {
+    const out = {
         enabled: tls.enabled !== false,
         serverName: tls.serverName ?? tls.server_name,
-        insecure: tls.insecure,
+        insecure: tls.insecure ?? tls.skip_cert_verify,
         alpn: tls.alpn,
         fingerprint: tls.fingerprint ?? tls.utls?.fingerprint,
-        ...tls
+        clientFingerprint: tls.clientFingerprint ?? tls.client_fingerprint,
+        ech: tls.ech
     };
+
+    for (const [key, value] of Object.entries(tls)) {
+        if (!['server_name', 'servername', 'skip_cert_verify', 'client_fingerprint', 'utls'].includes(key) && value !== undefined) {
+            out[key] = value;
+        }
+    }
+
+    return out;
+}
+
+function normalizeReality(reality) {
+    const out = {
+        publicKey: reality.publicKey ?? reality.public_key ?? reality.password,
+        shortId: reality.shortId ?? reality.short_id,
+        serverName: reality.serverName ?? reality.server_name ?? reality.servername,
+        fingerprint: reality.fingerprint ?? reality.clientFingerprint ?? reality.client_fingerprint,
+        mldsa65Verify: reality.mldsa65Verify ?? reality.mldsa65_verify,
+        spiderX: reality.spiderX ?? reality.spider_x
+    };
+
+    for (const [key, value] of Object.entries(reality)) {
+        if (!['public_key', 'short_id', 'server_name', 'servername', 'client_fingerprint', 'mldsa65_verify', 'spider_x', 'password'].includes(key) && value !== undefined) {
+            out[key] = value;
+        }
+    }
+
+    return out;
 }
 
 function extractCredentials(input) {
