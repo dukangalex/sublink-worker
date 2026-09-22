@@ -107,7 +107,21 @@ function buildStreamSettings(node) {
                 serverName: tls.serverName,
                 allowInsecure: tls.insecure,
                 alpn: tls.alpn,
-                fingerprint: tls.clientFingerprint ?? tls.fingerprint
+                fingerprint: tls.clientFingerprint ?? tls.fingerprint,
+                enableSessionResumption: tls.enableSessionResumption,
+                disableSystemRoot: tls.disableSystemRoot,
+                minVersion: tls.minVersion,
+                maxVersion: tls.maxVersion,
+                cipherSuites: tls.cipherSuites,
+                rejectUnknownSni: tls.rejectUnknownSNI,
+                curvePreferences: tls.curvePreferences,
+                masterKeyLog: tls.masterKeyLog,
+                pinnedPeerCertSha256: tls.pinnedPeerCertSha256,
+                verifyPeerCertByName: tls.verifyPeerCertByName,
+                verifyPeerCertInNames: tls.verifyPeerCertInNames,
+                echServerKeys: tls.echServerKeys,
+                echConfigList: tls.echConfigList,
+                echForceQuery: tls.echForceQuery
             } : {};
         }
     }
