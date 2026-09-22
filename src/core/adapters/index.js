@@ -93,6 +93,31 @@ const xrayConstraintsFor = (protocol) => [
                 reason: 'Xray REALITY is only compatible with RAW, XHTTP, and gRPC; got ' + normalized + ' for ' + protocol
             };
         }
+        if (node.tls && normalized === 'hysteria') {
+            return { supported: true };
+        }
+        if (normalized === 'websocket' && (
+            node.transport?.maxEarlyData !== undefined ||
+            node.transport?.earlyDataHeaderName !== undefined ||
+            node.transport?.v2rayHttpUpgrade !== undefined ||
+            node.transport?.v2rayHttpUpgradeFastOpen !== undefined
+        )) {
+            return {
+                supported: false,
+                reason: 'Xray WebSocket does not expose Mihomo-specific early-data or HTTP-upgrade fields; conversion would drop transport behavior'
+            };
+        }
+        if (normalized === 'mkcp' && (
+            node.transport?.readBuffer !== undefined ||
+            node.transport?.writeBuffer !== undefined ||
+            node.transport?.seed !== undefined ||
+            node.transport?.header !== undefined
+        )) {
+            return {
+                supported: false,
+                reason: 'Current Xray mKCP no longer supports read/write buffers, seed, or header; conversion would drop transport behavior'
+            };
+        }
         return { supported: true };
     }
 ];
