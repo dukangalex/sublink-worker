@@ -256,7 +256,10 @@ test('Xray maps only current mKCP fields and rejects removed legacy fields', () 
             tti: 50,
             'uplink-capacity': 5,
             'downlink-capacity': 20,
-            congestion: false
+            'cwnd-multiplier': 2,
+            'max-sending-window': 64,
+            seed: 'legacy-seed',
+            header: { type: 'srtp' }
         }
     });
 
@@ -267,7 +270,14 @@ test('Xray maps only current mKCP fields and rejects removed legacy fields', () 
         uplinkCapacity: 5,
         downlinkCapacity: 20
     });
-    assert.equal(output.streamSettings.kcpSettings.congestion, undefined);
+    assert.deepEqual(output.streamSettings.kcpSettings, {
+        mtu: 1350,
+        tti: 50,
+        uplinkCapacity: 5,
+        downlinkCapacity: 20,
+        cwndMultiplier: 2,
+        maxSendingWindow: 64
+    });
 });
 
 test('Xray rejects Mihomo-specific WebSocket transport fields instead of dropping them', () => {
