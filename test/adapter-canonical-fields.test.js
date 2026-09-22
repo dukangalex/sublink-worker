@@ -221,6 +221,33 @@ test('Mihomo maps canonical WebSocket transport options', () => {
 });
 
 
+test('Xray maps current Hysteria transport fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'hysteria',
+        hysteria_opts: {
+            version: 2,
+            auth: 'secret',
+            'udp-idle-timeout': 60,
+            masquerade: {
+                type: 'string',
+                content: 'hello'
+            }
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.hysteriaSettings, {
+        version: 2,
+        auth: 'secret',
+        udpIdleTimeout: 60,
+        masquerade: {
+            type: 'string',
+            content: 'hello'
+        }
+    });
+});
+
 test('Xray maps canonical TCP transport to RAW', () => {
     const node = normalizeProxy({
         ...base,
@@ -297,15 +324,32 @@ test('Xray maps only current mKCP fields and rejects removed legacy fields', () 
         mtu: 1350,
         tti: 50,
         uplinkCapacity: 5,
-        downlinkCapacity: 20
-    });
-    assert.deepEqual(output.streamSettings.kcpSettings, {
-        mtu: 1350,
-        tti: 50,
-        uplinkCapacity: 5,
         downlinkCapacity: 20,
         cwndMultiplier: 2,
         maxSendingWindow: 64
+    });
+});
+
+test('Xray maps current WebSocket fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'ws',
+        ws_opts: {
+            path: '/ws',
+            host: 'cdn.example.com',
+            headers: { 'X-Test': '1' },
+            'accept-proxy-protocol': true,
+            'heartbeat-period': 30000
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.wsSettings, {
+        path: '/ws',
+        host: 'cdn.example.com',
+        headers: { 'X-Test': '1' },
+        acceptProxyProtocol: true,
+        heartbeatPeriod: 30000
     });
 });
 
