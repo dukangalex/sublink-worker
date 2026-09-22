@@ -221,6 +221,16 @@ test('Mihomo maps canonical WebSocket transport options', () => {
 });
 
 
+test('Xray maps canonical TCP transport to RAW', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'tcp'
+    });
+
+    const output = toXray(node);
+    assert.equal(output.streamSettings.method, 'raw');
+});
+
 test('Xray maps canonical gRPC fields to the current wire keys', () => {
     const node = normalizeProxy({
         ...base,
