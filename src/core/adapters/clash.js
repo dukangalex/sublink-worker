@@ -124,6 +124,8 @@ function buildVless(base, node) {
         'packet-encoding': node.protocolOptions.packet_encoding,
         tls: Boolean(node.tls),
         servername: node.tls?.serverName,
+        alpn: node.tls?.alpn,
+        fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
         network: node.transport?.type || 'tcp',
@@ -202,10 +204,14 @@ function applyTransport(out, transport) {
     if (!transport?.type) return out;
     const type = transport.type;
     if (type === 'ws') {
-        out['ws-opts'] = {
+        out['ws-opts'] = prune({
             path: transport.path,
-            headers: transport.headers
-        };
+            headers: transport.headers,
+            'max-early-data': transport.maxEarlyData,
+            'early-data-header-name': transport.earlyDataHeaderName,
+            'v2ray-http-upgrade': transport.v2rayHttpUpgrade,
+            'v2ray-http-upgrade-fast-open': transport.v2rayHttpUpgradeFastOpen
+        });
     } else if (type === 'http') {
         out['http-opts'] = {
             method: transport.method || 'GET',
@@ -251,11 +257,33 @@ function applyTransport(out, transport) {
             'uplink-chunk-size': transport.uplinkChunkSize ?? transport.uplink_chunk_size ?? transport['uplink-chunk-size'],
             'sc-max-each-post-bytes': transport.scMaxEachPostBytes ?? transport.sc_max_each_post_bytes ?? transport['sc-max-each-post-bytes'],
             'sc-min-posts-interval-ms': transport.scMinPostsIntervalMs ?? transport.sc_min_posts_interval_ms ?? transport['sc-min-posts-interval-ms'],
-            'reuse-settings': transport.reuseSettings ?? transport.reuse_settings ?? transport['reuse-settings'],
-            'download-settings': transport.downloadSettings ?? transport.download_settings ?? transport['download-settings']
+            'reuse-settings': buildXhttpReuseSettings(transport.reuseSettings),
+            'download-settings': buildXhttpDownloadSettings(transport.downloadSettings)
         });
     }
     return out;
+}
+
+function buildXhttpReuseSettings(value) {
+    if (!value || typeof value !== 'object') return value;
+    return prune({
+        'max-concurrency': value.maxConcurrency,
+        'max-connections': value.maxConnections,
+        'c-max-reuse-times': value.cMaxReuseTimes,
+        'h-max-request-times': value.hMaxRequestTimes,
+        'h-max-reusable-secs': value.hMaxReusableSecs,
+        'h-keep-alive-period': value.hKeepAlivePeriod
+    });
+}
+
+function buildXhttpDownloadSettings(value) {
+    if (!value || typeof value !== 'object') return value;
+    return prune({
+        path: value.path,
+        host: value.host,
+        headers: value.headers,
+        'reuse-settings': buildXhttpReuseSettings(value.reuseSettings)
+    });
 }
 
 function clashType(protocol) {
