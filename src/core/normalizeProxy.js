@@ -96,6 +96,11 @@ function normalizeTransportObject(transport) {
         v2rayHttpUpgrade: ['v2rayHttpUpgrade', 'v2ray_http_upgrade', 'v2ray-http-upgrade'],
         v2rayHttpUpgradeFastOpen: ['v2rayHttpUpgradeFastOpen', 'v2ray_http_upgrade_fast_open', 'v2ray-http-upgrade-fast-open'],
         acceptProxyProtocol: ['acceptProxyProtocol', 'accept_proxy_protocol', 'accept-proxy-protocol'],
+        heartbeatPeriod: ['heartbeatPeriod', 'heartbeat_period', 'heartbeat-period'],
+        version: ['version'],
+        auth: ['auth'],
+        udpIdleTimeout: ['udpIdleTimeout', 'udp_idle_timeout', 'udp-idle-timeout'],
+        masquerade: ['masquerade'],
         noGrpcHeader: ['noGrpcHeader', 'no_grpc_header', 'no-grpc-header'],
         xPaddingBytes: ['xPaddingBytes', 'x_padding_bytes', 'x-padding-bytes'],
         xPaddingObfsMode: ['xPaddingObfsMode', 'x_padding_obfs_mode', 'x-padding-obfs-mode'],
@@ -233,7 +238,8 @@ function normalizeProtocolOptions(input) {
         Object.entries({ ...input, ...options }).filter(([key]) => !reserved.has(key))
     );
 }
-\nfunction normalizeWireguardPeers(peers, input) {
+
+function normalizeWireguardPeers(peers, input) {
     const source = Array.isArray(peers) ? peers : [];
     if (source.length) return source.map(normalizeWireguardPeer);
 
