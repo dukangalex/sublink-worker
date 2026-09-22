@@ -70,13 +70,22 @@ function buildStreamSettings(node) {
         const type = String(t.type).toLowerCase();
         const network = type === 'ws' ? 'websocket' : type === 'mkcp' ? 'mkcp' : type;
         out.method = network;
-        if (network === 'websocket') out.wsSettings = pick(t, ['path', 'headers', 'host']);
-        if (network === 'grpc') out.grpcSettings = pick(t, ['serviceName', 'multiMode']);
+        if (network === 'websocket') out.wsSettings = pick(t, [
+            'path', 'headers', 'host', 'maxEarlyData', 'earlyDataHeaderName',
+            'acceptProxyProtocol', 'heartbeatPeriod'
+        ]);
+        if (network === 'grpc') out.grpcSettings = pick(t, [
+            'serviceName', 'multiMode', 'idleTimeout', 'healthCheckTimeout',
+            'permitWithoutStream'
+        ]);
         if (network === 'httpupgrade') out.httpupgradeSettings = pick(t, ['host', 'path', 'headers']);
         if (network === 'xhttp') out.xhttpSettings = pick(t, [
             'host', 'path', 'mode', 'noSSEHeader', 'xPaddingBytes', 'xPaddingObfsMode',
             'xPaddingKey', 'xPaddingPlacement', 'xPaddingMethod', 'uplinkHTTPMethod',
-            'sessionPlacement', 'sessionKey', 'sessionTable', 'sessionLength'
+            'sessionPlacement', 'sessionKey', 'sessionTable', 'sessionLength',
+            'seqPlacement', 'seqKey', 'uplinkDataPlacement', 'uplinkDataKey',
+            'uplinkChunkSize', 'scMaxEachPostBytes', 'scMinPostsIntervalMs',
+            'reuseSettings', 'downloadSettings'
         ]);
         if (network === 'mkcp') out.kcpSettings = pick(t, ['mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity', 'congestion', 'readBufferSize', 'writeBufferSize', 'header', 'seed']);
         if (network === 'hysteria') out.hysteriaSettings = pick(t, ['version', 'auth', 'up_mbps', 'down_mbps']);
