@@ -231,6 +231,27 @@ test('Xray maps canonical TCP transport to RAW', () => {
     assert.equal(output.streamSettings.method, 'raw');
 });
 
+test('Xray maps canonical HTTPUpgrade fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        network: 'httpupgrade',
+        httpupgrade_opts: {
+            host: 'cdn.example.com',
+            path: '/upgrade',
+            headers: { 'X-Test': '1' },
+            'accept-proxy-protocol': true
+        }
+    });
+
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.httpupgradeSettings, {
+        host: 'cdn.example.com',
+        path: '/upgrade',
+        headers: { 'X-Test': '1' },
+        acceptProxyProtocol: true
+    });
+});
+
 test('Xray maps canonical gRPC fields to the current wire keys', () => {
     const node = normalizeProxy({
         ...base,
