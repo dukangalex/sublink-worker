@@ -41,9 +41,8 @@ function buildSettings(node) {
             return { servers: [{ address: node.endpoint.host, port: node.endpoint.port, users: c.username || c.password ? [{ user: c.username, pass: c.password }] : [] }] };
         case 'wireguard':
             return buildXrayWireguard(node);
-        case 'hysteria':
         case 'hysteria2':
-            return { address: node.endpoint.host, port: node.endpoint.port, password: c.password };
+            return { version: 2, address: node.endpoint.host, port: node.endpoint.port };
         default:
             return { address: node.endpoint.host, port: node.endpoint.port, ...o };
     }
@@ -66,7 +65,7 @@ function buildStreamSettings(node) {
     const tls = node.tls;
     const reality = node.reality;
     const out = {};
-    if (t.type) {
+    if (node.protocol === 'hysteria2') {\n        out.network = 'hysteria';\n        out.method = 'hysteria';\n        out.hysteriaSettings = { version: 2, auth: node.credentials?.password, up: node.protocolOptions?.up, down: node.protocolOptions?.down };\n    } else if (t.type) {
         const network = t.type === 'ws' ? 'ws' : t.type === 'grpc' ? 'grpc' : t.type === 'httpupgrade' ? 'httpupgrade' : t.type === 'mkcp' ? 'kcp' : t.type === 'xhttp' ? 'xhttp' : 'tcp';
         out.network = network;
         if (network === 'ws') out.wsSettings = pick(t, ['path', 'headers']);
