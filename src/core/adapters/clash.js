@@ -110,6 +110,10 @@ function buildVmess(base, node) {
         fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         'skip-cert-verify': Boolean(node.tls?.insecure),
+        'name-cert-verify': node.tls?.nameCertVerify,
+        certificate: node.tls?.certificate,
+        'private-key': node.tls?.privateKey,
+        'ech-opts': buildEchOptions(node.tls?.ech),
         network: node.transport?.type || 'tcp',
         udp: node.protocolOptions.udp ?? true
     };
@@ -148,9 +152,13 @@ function buildTlsProxy(base, node, extra = {}) {
         tls: true,
         sni: node.tls?.serverName,
         'skip-cert-verify': Boolean(node.tls?.insecure),
+        'name-cert-verify': node.tls?.nameCertVerify,
+        certificate: node.tls?.certificate,
+        'private-key': node.tls?.privateKey,
         fingerprint: node.tls?.fingerprint,
         'client-fingerprint': node.tls?.clientFingerprint,
         alpn: node.tls?.alpn,
+        'ech-opts': buildEchOptions(node.tls?.ech),
         udp: node.protocolOptions.udp ?? true
     };
     if (node.transport?.type) {
@@ -304,6 +312,15 @@ function buildXhttpDownloadSettings(value) {
         host: value.host,
         headers: value.headers,
         'reuse-settings': buildXhttpReuseSettings(value.reuseSettings)
+    });
+}
+
+function buildEchOptions(ech) {
+    if (!ech || typeof ech !== 'object') return undefined;
+    return prune({
+        enable: ech.enabled,
+        config: ech.config,
+        'query-server-name': ech.queryServerName
     });
 }
 
