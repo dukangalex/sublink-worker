@@ -14,20 +14,30 @@ export function explainConversion(node, target) {
     if (!entry) {
         return {
             supported: false,
-            reasons: ['No adapter capability has been declared for this protocol/target pair.']
+            status: 'unsupported',
+            reasons: ['No adapter capability has been declared for this protocol/target pair.'],
+            features: []
         };
     }
 
     const reasons = [];
+    const degraded = [];
+    const featureResults = [];
 
     for (const feature of getNodeFeatures(node)) {
         const rule = entry.features?.[feature];
-        if (rule === false) reasons.push(`Target ${target} does not support feature: ${feature}`);
+        const status = rule === false ? 'unsupported' : rule === 'degraded' ? 'degraded' : 'supported';
+        featureResults.push({ feature, status });
+        if (status === 'unsupported') reasons.push(`Target ${target} does not support feature: ${feature}`);
+        if (status === 'degraded') degraded.push(`Target ${target} may degrade feature: ${feature}`);
     }
 
     return {
         supported: reasons.length === 0,
+        status: reasons.length ? 'unsupported' : degraded.length ? 'degraded' : 'supported',
         reasons,
+        warnings: degraded,
+        featureResults,
         ...entry
     };
 }
@@ -47,7 +57,7 @@ export function getNodeFeatures(node = {}) {
     if (node.tls) {
         features.add('tls');
         if (node.tls.fingerprint || node.tls.utls) features.add('tls.utls');
-        if (node.tls.reality || node.reality) features.add('tls.reality');
+        if (node.reality || node.tls.reality) features.add('tls.reality');
         if (node.tls.ech) features.add('tls.ech');
     }
 
@@ -61,12 +71,13 @@ export function getNodeFeatures(node = {}) {
     if (node.protocolOptions?.udp_over_tcp || node.protocolOptions?.udp_over_stream) {
         features.add('udp_over_stream');
     }
+    if (node.protocolOptions?.udp_relay || node.protocolOptions?.udp) features.add('udp_relay');
 
     return [...features];
 }
 
 function normalizeTransportType(type) {
-    return String(type).toLowerCase().replace('httpupgrade', 'httpupgrade');
+    return String(type).toLowerCase();
 }
 
 function normalizeCapability(details) {
