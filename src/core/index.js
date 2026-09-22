@@ -8,3 +8,5 @@ export { declareCapability, canConvert, explainConversion, getCapabilityMatrix, 
 export { toSingBox } from './adapters/singbox.js';
 export { toClash } from './adapters/clash.js';
 export { toXray } from './adapters/xray.js';
+export { toSurge } from './adapters/surge.js';
+export { convertProxy, convertProxies } from './convertProxy.js';
