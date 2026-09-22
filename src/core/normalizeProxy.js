@@ -110,7 +110,16 @@ function normalizeTransportObject(transport) {
         scMaxEachPostBytes: ['scMaxEachPostBytes', 'sc_max_each_post_bytes', 'sc-max-each-post-bytes'],
         scMinPostsIntervalMs: ['scMinPostsIntervalMs', 'sc_min_posts_interval_ms', 'sc-min-posts-interval-ms'],
         reuseSettings: ['reuseSettings', 'reuse_settings', 'reuse-settings'],
-        downloadSettings: ['downloadSettings', 'download_settings', 'download-settings']
+        downloadSettings: ['downloadSettings', 'download_settings', 'download-settings'],
+        mtu: ['mtu'],
+        tti: ['tti'],
+        uplinkCapacity: ['uplinkCapacity', 'uplink_capacity', 'uplink-capacity'],
+        downlinkCapacity: ['downlinkCapacity', 'downlink_capacity', 'downlink-capacity'],
+        congestion: ['congestion'],
+        writeBuffer: ['writeBuffer', 'write_buffer', 'write-buffer'],
+        readBuffer: ['readBuffer', 'read_buffer', 'read-buffer'],
+        seed: ['seed'],
+        header: ['header']
     };
 
     const out = {
