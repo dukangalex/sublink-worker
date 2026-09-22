@@ -164,6 +164,15 @@ describe('transport security compatibility constraints', () => {
         );
     });
 
+    it('rejects Mihomo AnyTLS with Reality', () => {
+        const result = explainConversion({
+            protocol: 'anytls',
+            reality: { publicKey: 'pk', shortId: 'sid' }
+        }, 'clash');
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('Mihomo does not support AnyTLS with REALITY');
+    });
+
     it('rejects Mihomo TLSMirror on non-VMess Clash targets', () => {
         const result = explainConversion({
             protocol: 'vless',
