@@ -53,12 +53,30 @@ function normalizeTls(input) {
             input.clientFingerprint,
             input.client_fingerprint
         ),
-        ech: source.ech
+        ech: source.ech,
+        enableSessionResumption: firstDefined(source.enableSessionResumption, source.enable_session_resumption),
+        disableSystemRoot: firstDefined(source.disableSystemRoot, source.disable_system_root),
+        minVersion: firstDefined(source.minVersion, source.min_version),
+        maxVersion: firstDefined(source.maxVersion, source.max_version),
+        cipherSuites: firstDefined(source.cipherSuites, source.cipher_suites),
+        curvePreferences: firstDefined(source.curvePreferences, source.curve_preferences),
+        rejectUnknownSNI: firstDefined(source.rejectUnknownSNI, source.reject_unknown_sni),
+        masterKeyLog: firstDefined(source.masterKeyLog, source.master_key_log),
+        pinnedPeerCertSha256: firstDefined(source.pinnedPeerCertSha256, source.pinned_peer_cert_sha256),
+        verifyPeerCertByName: firstDefined(source.verifyPeerCertByName, source.verify_peer_cert_by_name),
+        verifyPeerCertInNames: firstDefined(source.verifyPeerCertInNames, source.verify_peer_cert_in_names),
+        echServerKeys: firstDefined(source.echServerKeys, source.ech_server_keys),
+        echConfigList: firstDefined(source.echConfigList, source.ech_config_list),
+        echForceQuery: firstDefined(source.echForceQuery, source.ech_force_query)
     };
 
     return pruneAliases(tls, [
         'server_name', 'servername', 'server_name',
-        'skip_cert_verify', 'client_fingerprint', 'utls'
+        'skip_cert_verify', 'client_fingerprint', 'utls',
+        'enable_session_resumption', 'disable_system_root', 'min_version',
+        'max_version', 'cipher_suites', 'curve_preferences', 'reject_unknown_sni',
+        'master_key_log', 'pinned_peer_cert_sha256', 'verify_peer_cert_by_name',
+        'verify_peer_cert_in_names', 'ech_server_keys', 'ech_config_list', 'ech_force_query'
     ]);
 }
 
