@@ -173,7 +173,7 @@ function buildHysteria(base, node) {
 }
 
 function buildWireguard(base, node) {
-    const peers = node.protocolOptions.peers || [{
+    const peers = node.protocolOptions.peers?.length ? node.protocolOptions.peers.map(peer => prune({ server: peer.address, port: peer.port, 'public-key': peer.publicKey, 'pre-shared-key': peer.preSharedKey, 'allowed-ips': peer.allowedIPs, reserved: peer.reserved })) : [{
         server: base.server,
         port: base.port,
         'public-key': node.credentials.peer_public_key,
