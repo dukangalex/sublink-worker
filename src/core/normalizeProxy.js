@@ -53,7 +53,10 @@ function normalizeTls(input) {
             input.clientFingerprint,
             input.client_fingerprint
         ),
-        ech: source.ech,
+        ech: normalizeEch(source.ech, source['ech-opts'], source.ech_opts),
+        nameCertVerify: firstDefined(source.nameCertVerify, source.name_cert_verify, source['name-cert-verify']),
+        certificate: firstDefined(source.certificate, source.cert),
+        privateKey: firstDefined(source.privateKey, source.private_key, source['private-key']),
         enableSessionResumption: firstDefined(source.enableSessionResumption, source.enable_session_resumption),
         disableSystemRoot: firstDefined(source.disableSystemRoot, source.disable_system_root),
         minVersion: firstDefined(source.minVersion, source.min_version),
@@ -78,6 +81,17 @@ function normalizeTls(input) {
         'master_key_log', 'pinned_peer_cert_sha256', 'verify_peer_cert_by_name',
         'verify_peer_cert_in_names', 'ech_server_keys', 'ech_config_list', 'ech_force_query'
     ]);
+}
+
+function normalizeEch(...values) {
+    const sources = values.filter(value => value && typeof value === 'object');
+    if (!sources.length) return undefined;
+    const source = Object.assign({}, ...sources);
+    return {
+        enabled: firstDefined(source.enabled, source.enable),
+        config: firstDefined(source.config, source.configList, source.config_list),
+        queryServerName: firstDefined(source.queryServerName, source.query_server_name, source['query-server-name'])
+    };
 }
 
 function normalizeTransport(input) {
