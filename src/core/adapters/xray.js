@@ -70,9 +70,7 @@ function buildStreamSettings(node) {
         const type = String(t.type).toLowerCase();
         const network = type === 'ws' ? 'websocket' : type === 'tcp' ? 'raw' : type === 'mkcp' ? 'mkcp' : type;
         out.method = network;
-        if (network === 'websocket') out.wsSettings = pick(t, [
-            'path', 'headers', 'host', 'heartbeatPeriod'
-        ]);
+        if (network === 'websocket') out.wsSettings = mapWebSocketSettings(t);
         if (network === 'grpc') out.grpcSettings = mapGrpcSettings(t);
         if (network === 'httpupgrade') out.httpupgradeSettings = mapHttpUpgradeSettings(t);
         if (network === 'xhttp') out.xhttpSettings = mapXhttpSettings(t);
@@ -80,12 +78,17 @@ function buildStreamSettings(node) {
             'mtu', 'tti', 'uplinkCapacity', 'downlinkCapacity',
             'cwndMultiplier', 'maxSendingWindow'
         ]);
-        if (network === 'hysteria') out.hysteriaSettings = pick(t, ['version', 'auth', 'up_mbps', 'down_mbps']);
+        if (network === 'hysteria') out.hysteriaSettings = mapHysteriaSettings(t);
     }
 
     if (node.protocol === 'hysteria2') {
         out.method = 'hysteria';
-        out.hysteriaSettings = { version: 2, auth: node.credentials?.password };
+        out.hysteriaSettings = {
+            version: 2,
+            auth: node.credentials?.password,
+            udpIdleTimeout: node.transport?.udpIdleTimeout,
+            masquerade: node.transport?.masquerade
+        };
     }
 
     if (tls || reality) {
@@ -109,6 +112,25 @@ function buildStreamSettings(node) {
         }
     }
     return Object.keys(out).length ? out : undefined;
+}
+
+function mapWebSocketSettings(transport) {
+    return prune({
+        path: transport.path,
+        headers: transport.headers,
+        host: transport.host,
+        acceptProxyProtocol: transport.acceptProxyProtocol,
+        heartbeatPeriod: transport.heartbeatPeriod
+    });
+}
+
+function mapHysteriaSettings(transport) {
+    return prune({
+        version: transport.version ?? 2,
+        auth: transport.auth,
+        udpIdleTimeout: transport.udpIdleTimeout,
+        masquerade: transport.masquerade
+    });
 }
 
 function mapHttpUpgradeSettings(transport) {
