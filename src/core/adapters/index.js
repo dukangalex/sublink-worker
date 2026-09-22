@@ -18,7 +18,6 @@ const singBoxFeatures = {
     'transport.xhttp': false,
     'transport.mkcp': false,
     'transport.mekya': false,
-    'transport.xhttp': true,
     'transport.domainsocket': false,
     multiplex: true,
     packet_encoding: true,
@@ -58,7 +57,9 @@ const surgeFeaturesFor = (protocol) => ({
 });
 
 const xrayFeaturesFor = (protocol) => ({
-    tls: true, 'tls.utls': true, 'tls.reality': true,
+    tls: true,
+    'tls.utls': true,
+    'tls.reality': true,
     'transport.ws': protocol === 'vless' || protocol === 'vmess' || protocol === 'trojan',
     'transport.grpc': protocol === 'vless' || protocol === 'vmess' || protocol === 'trojan',
     'transport.httpupgrade': protocol === 'vless' || protocol === 'vmess',
