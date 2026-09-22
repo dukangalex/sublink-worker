@@ -472,3 +472,25 @@ test('Mihomo maps canonical TLS verification and ECH fields explicitly', () => {
         'query-server-name': 'resolver.example.com'
     });
 });
+
+
+test('Mihomo maps ShadowTLS, ResTLS and JLS TLS carrier fields explicitly', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            ...base.tls,
+            'shadow-tls-opts': { version: 3, password: 'shadow' },
+            'restls-opts': { password: 'restls', 'version-hint': 'tls13', 'restls-script': 'script' },
+            'jls-opts': { username: 'jls-user', password: 'jls-pass' }
+        }
+    });
+
+    const output = toClash(node);
+    assert.deepEqual(output['shadow-tls-opts'], { version: 3, password: 'shadow' });
+    assert.deepEqual(output['restls-opts'], {
+        password: 'restls',
+        'version-hint': 'tls13',
+        'restls-script': 'script'
+    });
+    assert.deepEqual(output['jls-opts'], { username: 'jls-user', password: 'jls-pass' });
+});
