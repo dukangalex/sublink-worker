@@ -571,3 +571,49 @@ test('sing-box maps Mihomo mTLS certificate fields explicitly', () => {
     assert.deepEqual(output.tls.client_certificate, ['CERTIFICATE']);
     assert.deepEqual(output.tls.client_key, ['PRIVATE-KEY']);
 });
+
+
+test('sing-box maps canonical TLS version and cipher/curve controls', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            ...base.tls,
+            min_version: '1.2',
+            max_version: '1.3',
+            cipher_suites: ['TLS_AES_128_GCM_SHA256'],
+            curve_preferences: ['X25519', 'X25519MLKEM768']
+        }
+    });
+    const output = toSingBox(node);
+    assert.equal(output.tls.min_version, '1.2');
+    assert.equal(output.tls.max_version, '1.3');
+    assert.deepEqual(output.tls.cipher_suites, ['TLS_AES_128_GCM_SHA256']);
+    assert.deepEqual(output.tls.curve_preferences, ['X25519', 'X25519MLKEM768']);
+});
+
+test('Xray maps canonical mTLS certificate and private key into TLS CertificateObject', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            servername: 'example.com',
+            certificate: 'CERTIFICATE',
+            'private-key': 'PRIVATE-KEY'
+        }
+    });
+    const output = toXray(node);
+    assert.deepEqual(output.streamSettings.tlsSettings.certificates, [{
+        certificate: ['CERTIFICATE'],
+        key: ['PRIVATE-KEY']
+    }]);
+});
+
+test('sing-box rejects canonical verification controls with no equivalent outbound representation', () => {
+    const node = normalizeProxy({
+        ...base,
+        tls: {
+            servername: 'example.com',
+            'name-cert-verify': 'verify.example.com'
+        }
+    });
+    assert.throws(() => toSingBox(node), /sing-box does not expose an equivalent outbound field/);
+});
