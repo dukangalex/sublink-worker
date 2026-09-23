@@ -81,7 +81,7 @@ describe('feature-level conversion capabilities', () => {
 
 
 describe('transport security compatibility constraints', () => {
-    it('rejects Mihomo Reality over WebSocket', () => {
+    it('accepts Mihomo Reality over WebSocket', () => {
         const result = explainConversion({
             protocol: 'vless',
             tls: { serverName: 'example.com' },
@@ -89,8 +89,7 @@ describe('transport security compatibility constraints', () => {
             transport: { type: 'ws' }
         }, 'clash');
 
-        expect(result.supported).toBe(false);
-        expect(result.reasons).toContain('Mihomo does not support REALITY with ws transport for vless');
+        expect(result.supported).toBe(true);
     });
 
     it('accepts Mihomo Reality over gRPC', () => {
@@ -149,7 +148,7 @@ describe('transport security compatibility constraints', () => {
             tls: { serverName: 'example.com', nameCertVerify: 'verify.example.com' }
         }, 'singbox');
         expect(result.supported).toBe(false);
-        expect(result.reasons).toContain('sing-box has no outbound equivalent for Mihomo name-cert-verify');
+        expect(result.reasons).toContain('sing-box has no outbound equivalent for Mihomo name-cert-verify; conversion would drop certificate-name verification behavior');
     });
 
     it('rejects Mihomo TLS carrier fields on sing-box', () => {
