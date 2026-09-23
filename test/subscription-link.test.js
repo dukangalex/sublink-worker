@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeProxy } from '../src/core/normalizeProxy.js';
+import { parseAndNormalize } from '../src/core/parseAndNormalize.js';
 import { renderSubscription } from '../src/core/subscriptionRenderer.js';
 import {
     MemorySubscriptionStore,
@@ -48,6 +49,23 @@ describe('opaque subscription links', () => {
         expect(record.inputs[2].type).toBe('node');
     });
 
+    it('keeps explicit HTTP proxy nodes separate from subscription URLs', async () => {
+        const result = await parseAndNormalize(
+            'http://user:pass@example.com:8080',
+            undefined,
+            { inputType: 'node' }
+        );
+
+        expect(result.node).toMatchObject({
+            type: 'http',
+            server: 'example.com',
+            server_port: 8080,
+            username: 'user',
+            password: 'pass'
+        });
+        expect(result.validation.valid).toBe(true);
+    });
+
     it('keeps legacy single-source records compatible', () => {
         const record = createSubscriptionRecord({
             source: 'https://provider.example/subscribe?token=UPSTREAM_SECRET',
@@ -64,8 +82,8 @@ describe('opaque subscription links', () => {
         const seen = [];
         const resolver = createSubscriptionResolver({
             fetchSubscription: async () => ['vless://uuid@example.com:443?security=tls', 'ss://example'],
-            parseAndNormalize: async (value) => {
-                seen.push(value);
+            parseAndNormalize: async (value, userAgent, options) => {
+                seen.push({ value, inputType: options.inputType });
                 return { node: { value }, validation: { valid: true, errors: [], warnings: [] } };
             }
         });
@@ -80,9 +98,9 @@ describe('opaque subscription links', () => {
 
         const results = await resolver(record);
         expect(seen).toEqual([
-            'vless://uuid@example.com:443?security=tls',
-            'ss://example',
-            'trojan://secret@example.net:443'
+            { value: 'vless://uuid@example.com:443?security=tls', inputType: 'node' },
+            { value: 'ss://example', inputType: 'node' },
+            { value: 'trojan://secret@example.net:443', inputType: 'node' }
         ]);
         expect(results).toHaveLength(3);
     });
@@ -110,7 +128,6 @@ describe('opaque subscription links', () => {
         })).toThrow(/Unsupported subscription target/);
     });
 });
-
 
 describe('subscription collection rendering', () => {
     it('applies collection options during rendering', () => {
