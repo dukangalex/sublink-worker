@@ -32,6 +32,18 @@ const singBoxConstraintsFor = () => [
                 reason: 'sing-box adapter does not model Mihomo ShadowTLS, ResTLS, JLS, or TLSMirror outbound fields; conversion would drop TLS carrier behavior'
             };
         }
+        if (node.tls?.ech) {
+            return {
+                supported: false,
+                reason: 'sing-box ECH uses its own configuration representation; canonical Mihomo ECH fields cannot be mapped without changing semantics'
+            };
+        }
+        if (node.tls?.nameCertVerify) {
+            return {
+                supported: false,
+                reason: 'sing-box has no outbound equivalent for Mihomo name-cert-verify'
+            };
+        }
         if (node.reality?.supportX25519Mlkem768) {
             return {
                 supported: false,
