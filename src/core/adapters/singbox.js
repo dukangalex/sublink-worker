@@ -132,7 +132,8 @@ function toSingBoxTls(tls = {}, reality) {
     if (tls.clientFingerprint || tls.fingerprint) {
         out.utls = { enabled: true, fingerprint: tls.clientFingerprint ?? tls.fingerprint };
     }
-    if (tls.ech) out.ech = tls.ech;
+    if (tls.certificate) out.client_certificate = Array.isArray(tls.certificate) ? tls.certificate : [tls.certificate];
+    if (tls.privateKey) out.client_key = Array.isArray(tls.privateKey) ? tls.privateKey : [tls.privateKey];
 
     if (reality) {
         out.reality = {
