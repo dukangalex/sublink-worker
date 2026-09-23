@@ -37,10 +37,17 @@ const protocolParsers = {
 };
 
 export class ProxyParser {
-    static async parse(url, userAgent) {
+    static async parse(url, userAgent, options = {}) {
         if (!url || typeof url !== 'string') return undefined;
         const trimmed = url.trim();
         const type = trimmed.split('://')[0].toLowerCase();
+
+        // http(s) is ambiguous: it can be a subscription URL or an HTTP proxy.
+        // Only an explicitly typed node may select the HTTP proxy parser.
+        if (options.inputType === 'node' && (type === 'http' || type === 'https')) {
+            return parseHttpProxy(trimmed);
+        }
+
         const parser = protocolParsers[type];
         if (!parser) return undefined;
         return parser(trimmed, userAgent);

@@ -3,7 +3,9 @@ import { normalizeProxy } from './normalizeProxy.js';
 import { validateProxyNode } from './validateProxyNode.js';
 
 export async function parseAndNormalize(input, userAgent, options = {}) {
-    const parsed = typeof input === 'string' ? await ProxyParser.parse(input, userAgent) : input;
+    const parsed = typeof input === 'string'
+        ? await ProxyParser.parse(input, userAgent, options)
+        : input;
     if (!parsed) return { node: null, validation: { valid: false, errors: ['Unsupported or invalid proxy input'], warnings: [] } };
     const node = normalizeProxy(parsed);
     const validation = validateProxyNode(node, options);
