@@ -14,7 +14,7 @@ export function normalizeProxy(input) {
         tls: normalizeTls(input),
         transport: normalizeTransport(input),
         reality: normalizeReality(input),
-        protocolOptions: normalizeProtocolOptions(input)
+        protocolOptions: normalizeProtocolOptions(input, input.type || input.protocol)
     };
 
     return createProxyNode(normalized);
@@ -390,7 +390,7 @@ function normalizeReality(input) {
     ]);
 }
 
-function normalizeProtocolOptions(input) {
+function normalizeProtocolOptions(input, protocol) {
     const options = { ...(input.protocolOptions || {}) };
     const aliases = {
         'packet-encoding': 'packet_encoding',
@@ -414,9 +414,19 @@ function normalizeProtocolOptions(input) {
         'credentials', 'protocolOptions'
     ]);
 
-    return Object.fromEntries(
+    const result = Object.fromEntries(
         Object.entries({ ...input, ...options }).filter(([key]) => !reserved.has(key))
     );
+
+    for (const alias of ['packet-encoding', 'packetEncoding', 'alterId', 'flow-control', 'flowControl']) {
+        delete result[alias];
+    }
+
+    if (String(protocol).toLowerCase() === 'wireguard') {
+        result.peers = normalizeWireguardPeers(input.peers ?? options.peers, input);
+    }
+
+    return result;
 }
 
 function normalizeWireguardPeers(peers, input) {
