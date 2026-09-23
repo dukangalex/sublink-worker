@@ -126,7 +126,7 @@ function compareStrings(a, b) {
 }
 
 function stripRuntimeFields(node) {
-    const { id, metadata, ...rest } = node;
+    const { id, name, metadata, ...rest } = node;
     return rest;
 }
 
