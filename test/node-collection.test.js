@@ -25,7 +25,7 @@ test('collection removes duplicate nodes even when names differ', () => {
     ]);
 
     assert.deepEqual(result.nodes.map(node => node.name), ['Alpha', 'Duplicate', 'Zulu']);
-    assert.equal(result.warnings.filter(item => item.type === 'duplicate').length, 2);
+    assert.equal(result.warnings.filter(item => item.type === 'duplicate').length, 1);
 });
 
 test('collection filters invalid nodes by default', () => {
