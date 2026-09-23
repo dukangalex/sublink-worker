@@ -16,7 +16,7 @@ describe('Clash adapter', () => {
                 enabled: true,
                 server_name: 'example.com',
                 insecure: false,
-                fingerprint: 'chrome'
+                client_fingerprint: 'chrome'
             },
             reality: {
                 enabled: true,
