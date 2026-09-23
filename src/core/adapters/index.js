@@ -158,6 +158,7 @@ const xrayFeaturesFor = (protocol) => ({
     'transport.httpupgrade': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
     'transport.xhttp': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
     'transport.mkcp': ['http', 'vmess', 'vless', 'trojan'].includes(protocol),
+    'transport.quic': false,
     multiplex: true
 });
 
