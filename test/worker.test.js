@@ -162,7 +162,7 @@ proxy-groups:
                 name: 'invalid',
                 type: 'vless',
                 server: 'example.com',
-                server_port: 443
+                port: 443
             }, valid]
         }), {
             status: 200,
