@@ -68,3 +68,32 @@ test('collection applies explicit rename and grouping options', () => {
     assert.deepEqual(result.nodes.map(node => node.name), ['SubX-A-Node', 'SubX-B-Node']);
     assert.deepEqual(result.groups.map(group => group.name), ['a.example.com', 'b.example.com']);
 });
+
+
+test('collection deduplicates prevalidated nodes from mixed sources', () => {
+    const first = vless('From subscription');
+    const duplicate = vless('Direct node');
+    const invalid = vless('Invalid node');
+    delete invalid.uuid;
+
+    const result = processNodeCollection([
+        { resolved: true, node: first, validation: { valid: true, errors: [], warnings: [] } },
+        { resolved: true, node: duplicate, validation: { valid: true, errors: [], warnings: [] } },
+        { resolved: true, node: invalid, validation: { valid: false, errors: ['VLESS uuid is required'], warnings: [] } }
+    ]);
+
+    assert.deepEqual(result.nodes.map(node => node.name), ['From subscription']);
+    assert.equal(result.warnings.filter(item => item.type === 'duplicate').length, 1);
+    assert.equal(result.warnings.filter(item => item.type === 'invalid').length, 1);
+});
+
+test('collection preserves validation warnings from the resolver', () => {
+    const warning = { type: 'security', message: 'example warning' };
+    const result = processNodeCollection([{
+        resolved: true,
+        node: vless('warned'),
+        validation: { valid: true, errors: [], warnings: [warning] }
+    }]);
+
+    assert.deepEqual(result.entries[0].warnings, [warning]);
+});
