@@ -149,7 +149,13 @@ proxy-groups:
         const app = createTestApp({
             config: { subscriptionAdminToken: 'test-admin-token' }
         });
-        const valid = 'vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInRlc3QiLA0KICAiYWRkIjogIjEuMS4xLjEiLA0KICAicG9ydCI6ICI0NDMiLA0KICAiaWQiOiAiYWRkNjY2NjYtODg4OC04ODg4LTg4ODgtODg4ODg4ODg4ODg4IiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ3cyIsDQogICJ0eXBlIjogIm5vbmUiLA0KICAiaG9zdCI6ICIiLA0KICAicGF0aCI6ICIvaCIsDQogICJ0bHMiOiAidGxzIg0KfQ==';
+        const valid = {
+                name: 'valid',
+                type: 'vless',
+                server: 'example.com',
+                server_port: 443,
+                uuid: '00000000-0000-0000-0000-000000000001'
+            };
         const originalFetch = globalThis.fetch;
         vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
             proxies: [{
