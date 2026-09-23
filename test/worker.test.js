@@ -153,7 +153,7 @@ proxy-groups:
                 name: 'valid',
                 type: 'vless',
                 server: 'example.com',
-                server_port: 443,
+                port: 443,
                 uuid: '00000000-0000-0000-0000-000000000001'
             };
         const originalFetch = globalThis.fetch;
