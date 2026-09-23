@@ -98,11 +98,9 @@ describe('opaque subscription links', () => {
         );
 
         expect(result.node).toMatchObject({
-            type: 'http',
-            server: 'example.com',
-            server_port: 8080,
-            username: 'user',
-            password: 'pass'
+            protocol: 'http',
+            endpoint: { host: 'example.com', port: 8080 },
+            credentials: { username: 'user', password: 'pass' }
         });
         expect(result.validation.valid).toBe(true);
     });
