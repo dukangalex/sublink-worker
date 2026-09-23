@@ -114,12 +114,16 @@ export function createSubscriptionResolver({ fetchSubscription, parseAndNormaliz
 async function resolveNode(value, parseAndNormalize, options) {
     const result = await parseAndNormalize(value, options.userAgent, options);
     if (result.node) {
-        return result;
+        return {
+            ...result,
+            resolved: true
+        };
     }
     return {
         node: null,
         validation: result.validation,
-        input: value
+        input: value,
+        resolved: true
     };
 }
 
