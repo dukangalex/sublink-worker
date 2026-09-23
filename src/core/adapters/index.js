@@ -38,10 +38,10 @@ const singBoxConstraintsFor = () => [
                 reason: 'sing-box ECH uses its own configuration representation; canonical Mihomo ECH fields cannot be mapped without changing semantics'
             };
         }
-        if (node.tls?.nameCertVerify) {
+        if (node.tls?.nameCertVerify || node.tls?.enableSessionResumption || node.tls?.disableSystemRoot || node.tls?.masterKeyLog || node.tls?.rejectUnknownSNI || node.tls?.verifyPeerCertByName || node.tls?.verifyPeerCertInNames || node.tls?.echServerKeys || node.tls?.echConfigList || node.tls?.pinnedPeerCertSha256) {
             return {
                 supported: false,
-                reason: 'sing-box has no outbound equivalent for Mihomo name-cert-verify'
+                reason: 'sing-box does not expose an equivalent outbound field for one or more canonical Xray/Mihomo TLS verification controls'
             };
         }
         if (node.reality?.supportX25519Mlkem768) {
