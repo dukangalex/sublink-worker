@@ -11,7 +11,8 @@ export function createNodeRuntime(env = process.env) {
         logger: console,
         config: {
             configTtlSeconds: parseNumber(env.CONFIG_TTL_SECONDS) || undefined,
-            shortLinkTtlSeconds: parseNumber(env.SHORT_LINK_TTL_SECONDS) || null
+            shortLinkTtlSeconds: parseNumber(env.SHORT_LINK_TTL_SECONDS) || null,
+            subscriptionAdminToken: env.SUBX_ADMIN_TOKEN || env.SUBLINK_SUBSCRIPTION_ADMIN_TOKEN || null
         }
     };
 }
