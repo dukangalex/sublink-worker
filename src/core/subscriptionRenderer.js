@@ -10,8 +10,15 @@ export const SUBSCRIPTION_CONTENT_TYPES = {
 };
 
 export function renderSubscription(nodes, target, options = {}) {
-    const targetName = String(target || '').toLowerCase();
     const collection = processNodeCollection(nodes, options.collection || {});
+    return renderSubscriptionCollection(collection, target, options);
+}
+
+export function renderSubscriptionCollection(collection, target, options = {}) {
+    if (!collection || !Array.isArray(collection.nodes)) {
+        throw new TypeError('A processed node collection is required');
+    }
+    const targetName = String(target || '').toLowerCase();
     const results = collection.nodes.map(node => convertProxy(node, targetName, options));
     const failed = results.filter(result => !result.ok);
     if (failed.length) {
