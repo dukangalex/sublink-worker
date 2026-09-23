@@ -411,7 +411,7 @@ function normalizeProtocolOptions(input, protocol) {
         'skip_cert_verify', 'fingerprint', 'client_fingerprint', 'clientFingerprint',
         'transport', 'transport_type', 'network',
         'reality', 'reality_opts', 'realityOpts',
-        'credentials', 'protocolOptions'
+        'credentials', 'protocolOptions', 'metadata'
     ]);
 
     const result = Object.fromEntries(
@@ -446,21 +446,25 @@ function normalizeWireguardPeers(peers, input) {
 }
 
 function normalizeWireguardPeer(peer = {}) {
-    return {
-        ...peer,
-        address: firstDefined(peer.address, peer.server),
-        port: firstDefined(peer.port, peer.server_port),
-        publicKey: firstDefined(peer.publicKey, peer.public_key, peer['public-key']),
-        preSharedKey: firstDefined(peer.preSharedKey, peer.pre_shared_key, peer['pre-shared-key']),
-        allowedIPs: firstDefined(peer.allowedIPs, peer.allowed_ips, peer['allowed-ips']),
-        persistentKeepalive: firstDefined(
-            peer.persistentKeepalive,
-            peer.persistent_keepalive,
-            peer['persistent-keepalive'],
-            peer.keepAlive,
-            peer.keepalive
-        )
-    };
+    const out = { ...peer };
+    out.address = firstDefined(peer.address, peer.server);
+    out.port = firstDefined(peer.port, peer.server_port);
+    out.publicKey = firstDefined(peer.publicKey, peer.public_key, peer['public-key']);
+    out.preSharedKey = firstDefined(peer.preSharedKey, peer.pre_shared_key, peer['pre-shared-key']);
+    out.allowedIPs = firstDefined(peer.allowedIPs, peer.allowed_ips, peer['allowed-ips']);
+    out.persistentKeepalive = firstDefined(
+        peer.persistentKeepalive,
+        peer.persistent_keepalive,
+        peer['persistent-keepalive'],
+        peer.keepAlive,
+        peer.keepalive
+    );
+    for (const key of [
+        'server', 'server_port', 'public_key', 'public-key',
+        'pre_shared_key', 'pre-shared-key', 'allowed_ips', 'allowed-ips',
+        'persistent_keepalive', 'persistent-keepalive', 'keepAlive', 'keepalive'
+    ]) delete out[key];
+    return out;
 }
 
 function firstDefined(...values) {
