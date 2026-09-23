@@ -38,7 +38,13 @@ const singBoxConstraintsFor = () => [
                 reason: 'sing-box ECH uses its own configuration representation; canonical Mihomo ECH fields cannot be mapped without changing semantics'
             };
         }
-        if (node.tls?.nameCertVerify || node.tls?.enableSessionResumption || node.tls?.disableSystemRoot || node.tls?.masterKeyLog || node.tls?.rejectUnknownSNI || node.tls?.verifyPeerCertByName || node.tls?.verifyPeerCertInNames || node.tls?.echServerKeys || node.tls?.echConfigList || node.tls?.pinnedPeerCertSha256) {
+        if (node.tls?.nameCertVerify) {
+            return {
+                supported: false,
+                reason: 'sing-box has no outbound equivalent for Mihomo name-cert-verify; conversion would drop certificate-name verification behavior'
+            };
+        }
+        if (node.tls?.enableSessionResumption || node.tls?.disableSystemRoot || node.tls?.masterKeyLog || node.tls?.rejectUnknownSNI || node.tls?.verifyPeerCertByName || node.tls?.verifyPeerCertInNames || node.tls?.echServerKeys || node.tls?.echConfigList || node.tls?.pinnedPeerCertSha256) {
             return {
                 supported: false,
                 reason: 'sing-box does not expose an equivalent outbound field for one or more canonical Xray/Mihomo TLS verification controls'
@@ -86,15 +92,6 @@ const clashConstraintsFor = (protocol) => [
             return {
                 supported: false,
                 reason: `Mihomo TLSMirror is supported only for VMess; got ${protocol}`
-            };
-        }
-
-        const reality = Boolean(node.reality || node.tls?.reality);
-        const transport = String(node.transport?.type || 'tcp').toLowerCase();
-        if (reality && !['tcp', 'grpc', 'xhttp'].includes(transport)) {
-            return {
-                supported: false,
-                reason: `Mihomo does not support REALITY with ${transport} transport for ${protocol}`
             };
         }
         return { supported: true };
