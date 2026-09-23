@@ -16,16 +16,16 @@ test('node fingerprints are deterministic and ignore runtime ids', () => {
     assert.equal(first, second);
 });
 
-test('collection removes duplicate nodes and keeps deterministic ordering', () => {
+test('collection removes duplicate nodes even when names differ', () => {
     const result = processNodeCollection([
         vless('Zulu'),
         vless('Alpha'),
         vless('Duplicate'),
-        vless('Duplicate')
+        vless('Same connection, other name')
     ]);
 
     assert.deepEqual(result.nodes.map(node => node.name), ['Alpha', 'Duplicate', 'Zulu']);
-    assert.equal(result.warnings.filter(item => item.type === 'duplicate').length, 1);
+    assert.equal(result.warnings.filter(item => item.type === 'duplicate').length, 2);
 });
 
 test('collection filters invalid nodes by default', () => {
