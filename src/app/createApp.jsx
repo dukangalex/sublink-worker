@@ -24,7 +24,8 @@ export function createApp(bindings = {}) {
     const runtime = normalizeRuntime(bindings);
     const services = {
         shortLinks: runtime.kv ? new ShortLinkService(runtime.kv, { shortLinkTtlSeconds: runtime.config.shortLinkTtlSeconds }) : null,
-        configStorage: runtime.kv ? new ConfigStorageService(runtime.kv, { configTtlSeconds: runtime.config.configTtlSeconds }) : null
+        configStorage: runtime.kv ? new ConfigStorageService(runtime.kv, { configTtlSeconds: runtime.config.configTtlSeconds }) : null,
+        subscriptions: runtime.kv ? new KvSubscriptionStore(runtime.kv) : new MemorySubscriptionStore(createSubscriptionToken)
     };
 
     const app = new Hono();
@@ -66,6 +67,62 @@ export function createApp(bindings = {}) {
                 </div>
             </Layout>
         );
+    });
+
+    app.post('/api/subscriptions', async (c) => {
+        try {
+            const adminToken = runtime.config.subscriptionAdminToken;
+            if (!adminToken || c.req.header('Authorization') !== `Bearer ${adminToken}`) {
+                return c.text('Unauthorized', 401);
+            }
+
+            const payload = await c.req.json();
+            const record = createSubscriptionRecord({
+                inputs: payload?.inputs,
+                target: payload?.target,
+                options: payload?.options
+            });
+            const stored = await services.subscriptions.create(record);
+            return c.json({
+                token: stored.token,
+                url: createSubscriptionUrl(c.req.url, stored.token),
+                target: stored.target
+            }, 201);
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                return c.text('Invalid JSON body', 400);
+            }
+            return handleError(c, error, runtime.logger);
+        }
+    });
+
+    app.get('/sub/:token', async (c) => {
+        try {
+            const record = await services.subscriptions.get(c.req.param('token'));
+            if (!record) {
+                return c.text('Subscription not found', 404);
+            }
+
+            const resolved = await createSubscriptionResolver({
+                fetchSubscription,
+                parseAndNormalize
+            })(record, {
+                userAgent: c.req.header('User-Agent') || DEFAULT_USER_AGENT
+            });
+
+            const nodes = resolved.filter(result => result?.node).map(result => result.node);
+            if (!nodes.length) {
+                return c.text('Subscription contains no valid nodes', 422);
+            }
+
+            const rendered = renderSubscription(nodes, record.target, record.options);
+            return c.text(rendered.body, 200, {
+                'Content-Type': rendered.contentType,
+                'Cache-Control': 'no-store'
+            });
+        } catch (error) {
+            return handleError(c, error, runtime.logger);
+        }
     });
 
     app.get('/singbox', async (c) => {
