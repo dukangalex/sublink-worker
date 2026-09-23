@@ -126,7 +126,11 @@ function toSingBoxTls(tls = {}, reality) {
         enabled: tls.enabled !== false,
         server_name: tls.serverName,
         insecure: tls.insecure,
-        alpn: tls.alpn
+        alpn: tls.alpn,
+        min_version: tls.minVersion,
+        max_version: tls.maxVersion,
+        cipher_suites: tls.cipherSuites,
+        curve_preferences: tls.curvePreferences
     };
 
     if (tls.clientFingerprint || tls.fingerprint) {
