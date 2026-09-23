@@ -70,7 +70,12 @@ export function processNodeCollection(inputs = [], options = {}) {
         }
         if (!validation.valid) {
             if (filterInvalid) {
-                warnings.push({ type: 'invalid', nodeId: node.id, name: node.name, errors: validation.errors });
+                warnings.push({
+                    type: 'invalid',
+                    nodeId: node?.id,
+                    name: node?.name,
+                    errors: validation.errors
+                });
                 continue;
             }
             entries.push({ node, valid: false, errors: validation.errors, warnings: validation.warnings });
@@ -110,8 +115,6 @@ function isResolvedNodeResult(input) {
         input &&
         typeof input === 'object' &&
         input.resolved === true &&
-        input.node &&
-        typeof input.node === 'object' &&
         input.validation &&
         typeof input.validation === 'object'
     );
