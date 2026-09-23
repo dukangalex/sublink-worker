@@ -1,3 +1,5 @@
+import { createSubscriptionRecord, createSubscriptionInput, MemorySubscriptionStore } from './subscription.js';
+
 const TOKEN_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
 
 function randomBytes(length) {
@@ -42,52 +44,4 @@ export function isValidSubscriptionToken(token) {
     return typeof token === 'string' && /^[0-9A-Za-z_-]{12,64}$/.test(token);
 }
 
-export function createSubscriptionRecord(input = {}) {
-    if (!input.source || typeof input.source !== 'string') {
-        throw new Error('Subscription source must be a non-empty URL string');
-    }
-
-    const source = new URL(input.source);
-    if (!['http:', 'https:'].includes(source.protocol)) {
-        throw new Error('Subscription source must use HTTP or HTTPS');
-    }
-
-    const target = String(input.target || 'clash').toLowerCase();
-    if (!['clash', 'singbox', 'xray', 'surge'].includes(target)) {
-        throw new Error(`Unsupported subscription target: ${target}`);
-    }
-
-    const token = input.token || createSubscriptionToken();
-    if (!isValidSubscriptionToken(token)) {
-        throw new Error('Invalid subscription token');
-    }
-
-    return Object.freeze({
-        token,
-        source: source.toString(),
-        target,
-        createdAt: input.createdAt || new Date().toISOString()
-    });
-}
-
-export class MemorySubscriptionStore {
-    #records = new Map();
-
-    async create(input) {
-        const record = createSubscriptionRecord(input);
-        if (this.#records.has(record.token)) {
-            throw new Error('Subscription token collision');
-        }
-        this.#records.set(record.token, record);
-        return record;
-    }
-
-    async get(token) {
-        if (!isValidSubscriptionToken(token)) return null;
-        return this.#records.get(token) || null;
-    }
-
-    async delete(token) {
-        return this.#records.delete(token);
-    }
-}
+export { createSubscriptionRecord, createSubscriptionInput, MemorySubscriptionStore };
