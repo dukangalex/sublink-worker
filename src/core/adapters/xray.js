@@ -69,7 +69,7 @@ function buildStreamSettings(node) {
     if (t.type) {
         const type = String(t.type).toLowerCase();
         const network = type === 'ws' ? 'websocket' : type === 'tcp' ? 'raw' : type === 'mkcp' ? 'mkcp' : type;
-        out.method = network;
+        out.network = network;
         if (network === 'websocket') out.wsSettings = mapWebSocketSettings(t);
         if (network === 'grpc') out.grpcSettings = mapGrpcSettings(t);
         if (network === 'httpupgrade') out.httpupgradeSettings = mapHttpUpgradeSettings(t);
