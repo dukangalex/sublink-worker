@@ -552,3 +552,22 @@ test('Mihomo maps REALITY ML-KEM capability and TLSMirror fields explicitly', ()
         { weight: 1, 'goto-location': 0 }
     ]);
 });
+
+
+test('sing-box maps Mihomo mTLS certificate fields explicitly', () => {
+    const node = normalizeProxy({
+        name: 'vless-mtls',
+        type: 'vless',
+        server: 'example.com',
+        server_port: 443,
+        uuid: '00000000-0000-0000-0000-000000000001',
+        tls: {
+            servername: 'example.com',
+            certificate: 'CERTIFICATE',
+            'private-key': 'PRIVATE-KEY'
+        }
+    });
+    const output = toSingBox(node);
+    assert.deepEqual(output.tls.client_certificate, ['CERTIFICATE']);
+    assert.deepEqual(output.tls.client_key, ['PRIVATE-KEY']);
+});
