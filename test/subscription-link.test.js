@@ -49,6 +49,47 @@ describe('opaque subscription links', () => {
         expect(record.inputs[2].type).toBe('node');
     });
 
+    it('accepts direct structured node objects as mixed inputs', async () => {
+        const record = createSubscriptionRecord({
+            inputs: [
+                {
+                    type: 'node',
+                    name: 'Direct object',
+                    value: {
+                        type: 'vless',
+                        server: 'object.example.com',
+                        server_port: 443,
+                        uuid: '00000000-0000-0000-0000-000000000001'
+                    }
+                },
+                'vless://uuid@url.example.com:443?security=tls'
+            ],
+            target: 'clash'
+        });
+
+        const seen = [];
+        const resolver = createSubscriptionResolver({
+            fetchSubscription: async () => [],
+            parseAndNormalize: async (value, userAgent, options) => {
+                seen.push({ value, inputType: options.inputType });
+                return { node: value, validation: { valid: true, errors: [], warnings: [] } };
+            }
+        });
+
+        await resolver(record);
+        expect(seen).toHaveLength(2);
+        expect(seen[0].value).toMatchObject({
+            type: 'vless',
+            server: 'object.example.com',
+            server_port: 443
+        });
+        expect(seen[0].inputType).toBe('node');
+        expect(seen[1]).toMatchObject({
+            inputType: 'node',
+            value: 'vless://uuid@url.example.com:443?security=tls'
+        });
+    });
+
     it('keeps explicit HTTP proxy nodes separate from subscription URLs', async () => {
         const result = await parseAndNormalize(
             'http://user:pass@example.com:8080',
