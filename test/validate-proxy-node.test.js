@@ -22,7 +22,7 @@ test('rejects malformed endpoint and missing credentials', () => {
 });
 
 test('validates WireGuard peer structure', () => {
-    const node = normalizeProxy({ type: 'wireguard', server: 'wg.example.com', server_port: 51820, private_key: 'private', peers: [{ public_key: 'peer-public', allowed_ips: ['0.0.0.0/0'] }] });
+    const node = normalizeProxy({ type: 'wireguard', server: 'wg.example.com', server_port: 51820, private_key: 'private', peers: [{ server: 'peer.example.com', server_port: 51820, public_key: 'peer-public', allowed_ips: ['0.0.0.0/0'] }] });
     assert.equal(validateProxyNode(node).valid, true);
 });
 
