@@ -119,6 +119,7 @@ function buildStreamSettings(node) {
                 pinnedPeerCertSha256: tls.pinnedPeerCertSha256,
                 verifyPeerCertByName: tls.verifyPeerCertByName,
                 verifyPeerCertInNames: tls.verifyPeerCertInNames,
+                certificates: buildXrayCertificates(tls),
                 echServerKeys: tls.echServerKeys,
                 echConfigList: tls.echConfigList,
                 echForceQuery: tls.echForceQuery
@@ -126,6 +127,16 @@ function buildStreamSettings(node) {
         }
     }
     return Object.keys(out).length ? out : undefined;
+}
+
+function buildXrayCertificates(tls) {
+    if (!tls.certificate && !tls.privateKey) return undefined;
+    if (!tls.certificate || !tls.privateKey) {
+        throw new Error('Xray TLS certificates require both canonical certificate and privateKey fields');
+    }
+    const certificates = Array.isArray(tls.certificate) ? tls.certificate : [tls.certificate];
+    const keys = Array.isArray(tls.privateKey) ? tls.privateKey : [tls.privateKey];
+    return certificates.map((certificate, index) => ({ certificate: [certificate], key: [keys[index] ?? keys[0]] }));
 }
 
 function mapWebSocketSettings(transport) {
