@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { normalizeProxy } from '../src/core/normalizeProxy.js';
+import { renderSubscription } from '../src/core/subscriptionRenderer.js';
 import {
     MemorySubscriptionStore,
     createSubscriptionResolver,
@@ -106,5 +108,28 @@ describe('opaque subscription links', () => {
             source: 'https://provider.example/sub',
             target: 'unknown'
         })).toThrow(/Unsupported subscription target/);
+    });
+});
+
+
+describe('subscription collection rendering', () => {
+    it('applies collection options during rendering', () => {
+        const node = normalizeProxy({
+            name: 'Node-A',
+            type: 'vless',
+            server: 'example.com',
+            server_port: 443,
+            uuid: '00000000-0000-0000-0000-000000000001'
+        });
+
+        const rendered = renderSubscription([node], 'clash', {
+            collection: {
+                rename: { prefix: 'SubX-' },
+                sort: 'name'
+            }
+        });
+
+        expect(rendered.body).toContain('SubX-Node-A');
+        expect(rendered.collection.nodes[0].name).toBe('SubX-Node-A');
     });
 });
