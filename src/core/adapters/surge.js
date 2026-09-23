@@ -84,7 +84,15 @@ function buildParameters(node) {
     if (tls) {
         add(params, 'sni', tls.serverName);
         add(params, 'skip-cert-verify', tls.insecure);
+        add(params, 'server-cert-verify-name', tls.nameCertVerify);
+        add(params, 'server-cert-fingerprint-sha256', tls.pinnedPeerCertSha256);
         add(params, 'alpn', join(tls.alpn));
+        add(params, 'client-cert', tls.clientCertificate);
+        if (tls.shadowTls) {
+            add(params, 'shadow-tls-password', tls.shadowTls.password);
+            add(params, 'shadow-tls-version', tls.shadowTls.version);
+            add(params, 'shadow-tls-sni', tls.serverName);
+        }
     }
     const o = node.protocolOptions || {};
     for (const key of ['interface', 'ip-version', 'tfo', 'test-url', 'test-timeout', 'underlying-proxy']) {
