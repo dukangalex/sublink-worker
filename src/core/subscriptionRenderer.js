@@ -1,5 +1,6 @@
 import yaml from 'js-yaml';
 import { convertProxy } from './convertProxy.js';
+import { processNodeCollection } from './nodeCollection.js';
 
 export const SUBSCRIPTION_CONTENT_TYPES = {
     clash: 'text/yaml; charset=utf-8',
@@ -10,7 +11,8 @@ export const SUBSCRIPTION_CONTENT_TYPES = {
 
 export function renderSubscription(nodes, target, options = {}) {
     const targetName = String(target || '').toLowerCase();
-    const results = nodes.map(node => convertProxy(node, targetName, options));
+    const collection = processNodeCollection(nodes, options.collection || {});
+    const results = collection.nodes.map(node => convertProxy(node, targetName, options));
     const failed = results.filter(result => !result.ok);
     if (failed.length) {
         const errors = failed.flatMap(result => result.errors || []);
@@ -22,7 +24,11 @@ export function renderSubscription(nodes, target, options = {}) {
     return {
         body,
         contentType: SUBSCRIPTION_CONTENT_TYPES[targetName] || 'text/plain; charset=utf-8',
-        warnings: results.flatMap(result => result.warnings || [])
+        warnings: [
+            ...collection.warnings,
+            ...results.flatMap(result => result.warnings || [])
+        ],
+        collection
     };
 }
 
