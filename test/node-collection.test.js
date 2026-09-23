@@ -16,6 +16,13 @@ test('node fingerprints are deterministic and ignore runtime ids', () => {
     assert.equal(first, second);
 });
 
+test('node fingerprints ignore display names', () => {
+    assert.equal(
+        createNodeFingerprint(vless('Alpha')),
+        createNodeFingerprint(vless('Same connection, other name'))
+    );
+});
+
 test('collection removes duplicate nodes even when names differ', () => {
     const result = processNodeCollection([
         vless('Zulu', 'z.example.com'),
