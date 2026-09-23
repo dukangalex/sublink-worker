@@ -49,7 +49,7 @@ export function createSubscriptionInput(input) {
     throw new Error(`Unsupported subscription input type: ${type || 'unknown'}`);
 }
 
-export function createSubscriptionRecord(input = {}, createToken = null) {
+export function createSubscriptionRecord(input = {}, createToken = createOpaqueToken) {
     const rawInputs = Array.isArray(input.inputs)
         ? input.inputs
         : input.source
@@ -66,7 +66,7 @@ export function createSubscriptionRecord(input = {}, createToken = null) {
         throw new Error(`Unsupported subscription target: ${target}`);
     }
 
-    const token = input.token || (createToken ? createToken() : null);
+    const token = input.token || createToken();
     if (!token) {
         throw new Error('Subscription token generator is required');
     }
@@ -159,6 +159,6 @@ export class MemorySubscriptionStore {
     }
 }
 
-function isValidToken(token) {
+function createOpaqueToken(length = 16) {\n    if (!globalThis.crypto?.getRandomValues) {\n        throw new Error('A cryptographically secure random source is required to create subscription tokens');\n    }\n    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';\n    const bytes = new Uint8Array(length);\n    globalThis.crypto.getRandomValues(bytes);\n    return Array.from(bytes, byte => alphabet[byte & 63]).join('');\n}\n\nfunction isValidToken(token) {
     return typeof token === 'string' && /^[0-9A-Za-z_-]{12,64}$/.test(token);
 }
