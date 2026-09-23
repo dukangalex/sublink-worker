@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="public/favicon.png" alt="Sublink Worker" width="120" height="120"/>
+  <img src="public/favicon.png" alt="SubX" width="120" height="120"/>
 
-  <h1><b>Sublink Worker</b></h1>
+  <h1><b>SubX</b></h1>
   <h5><i>One Worker, All Subscriptions</i></h5>
 
-  <p><b>A lightweight subscription converter and manager for proxy protocols, deployable on Cloudflare Workers, Vercel, Node.js, or Docker.</b></p>
+  <p><b>A local-first, protocol-agnostic subscription parsing, normalization, and configuration conversion engine, deployable on Cloudflare Workers, Vercel, Node.js, or Docker.</b></p>
 
   <a href="https://trendshift.io/repositories/12291" target="_blank">
     <img src="https://trendshift.io/api/badge/repositories/12291" alt="7Sageer%2Fsublink-worker | Trendshift" width="250" height="55"/>
@@ -33,6 +33,10 @@
     <a href="https://sublink.works/guide/faq/">FAQ</a>
   </p>
 </div>
+
+## SubX
+
+SubX is the formal project name. The repository and historical deployment paths may still use the legacy `sublink-worker` identifier for compatibility.
 
 ## 🚀 Quick Start
 
