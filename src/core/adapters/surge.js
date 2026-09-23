@@ -56,7 +56,6 @@ export function toSurge(node) {
     } else if (node.protocol === 'socks') {
         add(params, 'username', node.credentials?.username);
         add(params, 'udp-relay', node.protocolOptions?.udp_relay ?? node.protocolOptions?.udp);
-
         add(params, 'password', node.credentials?.password);
     } else if (node.protocol === 'http') {
         add(params, 'username', node.credentials?.username);
@@ -151,13 +150,22 @@ function join(value) {
 
 function formatParam(key, value) {
     const rendered = String(value);
-    return rendered.includes(',') ? `${key}="${rendered.replace(/"/g, '\\"')}"` : `${key}=${rendered}`;
+    return rendered.includes(',') ? `${key}="${rendered.replace(/"/g, '\\\"')}"` : `${key}=${rendered}`;
 }
 
 function escapeToken(value) {
     return String(value).replace(/[,=]/g, '_');
 }
 
-function stripCidr(value) { return String(value || '').split('/')[0]; }\n\nfunction quoteIfComma(value) { return String(value).includes(',') ? `"${String(value).replace(/"/g, '\\\"')}"` : value; }\n\nfunction escapeSection(value) {
+function stripCidr(value) {
+    return String(value || '').split('/')[0];
+}
+
+function quoteIfComma(value) {
+    const rendered = String(value);
+    return rendered.includes(',') ? `"${rendered.replace(/"/g, '\\\"')}"` : rendered;
+}
+
+function escapeSection(value) {
     return String(value).replace(/[\\\n\r]/g, '_');
 }
