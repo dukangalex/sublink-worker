@@ -96,4 +96,5 @@ test('collection preserves validation warnings from the resolver', () => {
     }]);
 
     assert.deepEqual(result.entries[0].warnings, [warning]);
+    assert.deepEqual(result.warnings, [warning]);
 });
