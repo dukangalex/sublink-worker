@@ -20,7 +20,7 @@ test('collection removes duplicate nodes even when names differ', () => {
     const result = processNodeCollection([
         vless('Zulu', 'z.example.com'),
         vless('Alpha'),
-        vless('Duplicate'),
+        vless('Duplicate', 'd.example.com'),
         vless('Same connection, other name')
     ]);
 
