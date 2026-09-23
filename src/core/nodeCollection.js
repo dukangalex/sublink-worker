@@ -2,7 +2,7 @@ import { normalizeProxy } from './normalizeProxy.js';
 import { validateProxyNode } from './validateProxyNode.js';
 
 export function createNodeFingerprint(node) {
-    const normalized = normalizeProxy(node);
+    const normalized = isCanonicalNode(node) ? node : normalizeProxy(node);
     const protocolOptions = { ...(normalized.protocolOptions || {}) };
     if (protocolOptions.uuid !== undefined && protocolOptions.uuid === normalized.credentials?.uuid) {
         delete protocolOptions.uuid;
@@ -18,6 +18,20 @@ export function createNodeFingerprint(node) {
         reality: normalized.reality,
         protocolOptions
     });
+}
+
+function isCanonicalNode(node) {
+    return Boolean(
+        node &&
+        typeof node === 'object' &&
+        typeof node.protocol === 'string' &&
+        node.endpoint &&
+        typeof node.endpoint === 'object' &&
+        node.credentials &&
+        typeof node.credentials === 'object' &&
+        node.protocolOptions &&
+        typeof node.protocolOptions === 'object'
+    );
 }
 
 export function processNodeCollection(inputs = [], options = {}) {
