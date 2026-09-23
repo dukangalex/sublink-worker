@@ -29,8 +29,8 @@ test('Xray Reality maps canonical publicKey to current password field', () => {
     });
 
     const output = toXray(node);
-    assert.equal(output.streamSettings.method, 'grpc');
-    assert.equal(output.streamSettings.network, undefined);
+    assert.equal(output.streamSettings.network, 'grpc');
+    assert.equal(output.streamSettings.method, undefined);
     assert.equal(output.streamSettings.security, 'reality');
     assert.equal(output.streamSettings.realitySettings.password, 'reality-public-key');
     assert.equal(output.streamSettings.realitySettings.shortId, '01234567');
@@ -255,7 +255,7 @@ test('Xray maps canonical TCP transport to RAW', () => {
     });
 
     const output = toXray(node);
-    assert.equal(output.streamSettings.method, 'raw');
+    assert.equal(output.streamSettings.network, 'raw');
 });
 
 test('Xray maps canonical HTTPUpgrade fields explicitly', () => {
