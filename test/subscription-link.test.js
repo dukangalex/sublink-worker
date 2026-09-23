@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
     MemorySubscriptionStore,
-    createSubscriptionInput,
     createSubscriptionResolver,
     createSubscriptionRecord,
     createSubscriptionToken,
