@@ -51,16 +51,23 @@ export function processNodeCollection(inputs = [], options = {}) {
 
     for (const input of inputs) {
         let node;
-        try {
-            node = normalizeProxy(input);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            warnings.push({ type: 'normalize', message, input });
-            if (!filterInvalid) entries.push({ node: null, valid: false, errors: [message], warnings: [] });
-            continue;
-        }
+        let validation;
 
-        const validation = validateProxyNode(node);
+        if (isResolvedNodeResult(input)) {
+            node = input.node;
+            validation = input.validation || { valid: true, errors: [], warnings: [] };
+        } else {
+            try {
+                node = normalizeProxy(input);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                warnings.push({ type: 'normalize', message, input });
+                if (!filterInvalid) entries.push({ node: null, valid: false, errors: [message], warnings: [] });
+                continue;
+            }
+
+            validation = validateProxyNode(node);
+        }
         if (!validation.valid) {
             if (filterInvalid) {
                 warnings.push({ type: 'invalid', nodeId: node.id, name: node.name, errors: validation.errors });
@@ -96,6 +103,18 @@ export function processNodeCollection(inputs = [], options = {}) {
         groups,
         warnings
     };
+}
+
+function isResolvedNodeResult(input) {
+    return Boolean(
+        input &&
+        typeof input === 'object' &&
+        input.resolved === true &&
+        input.node &&
+        typeof input.node === 'object' &&
+        input.validation &&
+        typeof input.validation === 'object'
+    );
 }
 
 function renameNode(node, rename) {
@@ -151,11 +170,6 @@ function compareStrings(a, b) {
     const left = String(a);
     const right = String(b);
     return left < right ? -1 : left > right ? 1 : 0;
-}
-
-function stripRuntimeFields(node) {
-    const { id, name, metadata, ...rest } = node;
-    return rest;
 }
 
 function stableSerialize(value) {
