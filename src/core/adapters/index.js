@@ -105,10 +105,37 @@ const surgeProtocols = new Set(['shadowsocks','vmess','trojan','hysteria2','tuic
 
 const surgeConstraintsFor = () => [
     (node) => {
-        if (node.tls?.tlsMirror || node.tls?.shadowTls || node.tls?.restls || node.tls?.jls || node.tls?.ech || node.reality?.supportX25519Mlkem768) {
+        if (node.tls?.ech || node.reality || node.tls?.tlsMirror || node.tls?.restls || node.tls?.jls) {
             return {
                 supported: false,
-                reason: 'Surge adapter does not model these Mihomo-specific TLS carrier/ECH/REALITY fields; conversion would drop TLS behavior'
+                reason: 'Surge adapter does not model canonical ECH, REALITY, TLSMirror, ResTLS, or JLS fields; conversion would drop TLS behavior'
+            };
+        }
+        if (node.tls?.certificate || node.tls?.privateKey) {
+            return {
+                supported: false,
+                reason: 'Surge mTLS requires a Keystore P12 client-cert reference; canonical certificate/private-key fields cannot be converted without changing credential representation'
+            };
+        }
+        if (node.tls?.shadowTls) {
+            const version = Number(node.tls.shadowTls.version ?? 2);
+            if (![2, 3].includes(version)) {
+                return {
+                    supported: false,
+                    reason: 'Surge supports Shadow TLS v2/v3 only; canonical Shadow TLS version is outside Surge support'
+                };
+            }
+            if (['tuic', 'hysteria2', 'wireguard'].includes(node.protocol)) {
+                return {
+                    supported: false,
+                    reason: `Surge Shadow TLS cannot be combined with ${node.protocol.toUpperCase()} policies`
+                };
+            }
+        }
+        if (node.tls?.clientFingerprint || node.tls?.fingerprint) {
+            return {
+                supported: false,
+                reason: 'Surge does not expose a canonical uTLS client-fingerprint parameter; conversion would change TLS fingerprint behavior'
             };
         }
         return { supported: true };
