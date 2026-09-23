@@ -69,3 +69,93 @@ test('preserves Surge SOCKS5 UDP relay option', () => {
     const out = toSurge(node);
     assert.match(out.line, /udp-relay=true/);
 });
+
+
+test('maps Surge-supported certificate verification controls explicitly', () => {
+    const node = normalizeProxy({
+        name: 'https-pinned',
+        type: 'http',
+        server: 'example.com',
+        server_port: 443,
+        tls: {
+            server_name: 'cdn.example.com',
+            skip_cert_verify: true,
+            name_cert_verify: 'origin.example.com',
+            pinned_peer_cert_sha256: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        }
+    });
+    const out = toSurge(node);
+    assert.match(out.line, /sni=cdn\.example\.com/);
+    assert.match(out.line, /skip-cert-verify=true/);
+    assert.match(out.line, /server-cert-verify-name=origin\.example\.com/);
+    assert.match(out.line, /server-cert-fingerprint-sha256=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/);
+});
+
+test('maps Surge Shadow TLS v2/v3 fields explicitly', () => {
+    const node = normalizeProxy({
+        name: 'stls',
+        type: 'snell',
+        server: 'example.com',
+        server_port: 443,
+        psk: 'psk',
+        version: 5,
+        tls: {
+            server_name: 'cover.example.com',
+            'shadow-tls-opts': {
+                version: 3,
+                password: 'shadow-password'
+            }
+        }
+    });
+    const out = toSurge(node);
+    assert.match(out.line, /shadow-tls-password=shadow-password/);
+    assert.match(out.line, /shadow-tls-version=3/);
+    assert.match(out.line, /shadow-tls-sni=cover\.example\.com/);
+});
+
+test('rejects unsupported Surge TLS representations instead of dropping them', () => {
+    const cases = [
+        ['mTLS certificate/private-key', { certificate: 'CERT', private_key: 'KEY' }],
+        ['ECH', { ech: { enabled: true, config: 'BASE64' } }],
+        ['REALITY', { reality: { public_key: 'pk', short_id: 'sid' } }],
+        ['TLSMirror', { 'tlsmirror-opts': { 'primary-key': 'PRIMARY' } }]
+    ];
+
+    for (const [label, tls] of cases) {
+        const input = {
+            name: label,
+            type: 'vmess',
+            server: 'example.com',
+            server_port: 443,
+            uuid: '00000000-0000-0000-0000-000000000001',
+            tls: { server_name: 'example.com' }
+        };
+        if (tls.reality) input.reality = tls.reality;
+        else Object.assign(input.tls, tls);
+        const node = normalizeProxy(input);
+        assert.throws(() => toSurge(node), /Surge (adapter does not model|mTLS requires)/, label);
+    }
+});
+
+test('rejects Surge-incompatible Shadow TLS versions and QUIC wrappers', () => {
+    const v1 = normalizeProxy({
+        name: 'stls-v1',
+        type: 'snell',
+        server: 'example.com',
+        server_port: 443,
+        psk: 'psk',
+        version: 5,
+        tls: { 'shadow-tls-opts': { version: 1, password: 'p' } }
+    });
+    assert.throws(() => toSurge(v1), /Shadow TLS v2\/v3/);
+
+    const tuic = normalizeProxy({
+        name: 'tuic-stls',
+        type: 'tuic',
+        server: 'example.com',
+        server_port: 443,
+        token: 'token',
+        tls: { 'shadow-tls-opts': { version: 2, password: 'p' } }
+    });
+    assert.throws(() => toSurge(tuic), /cannot be combined with TUIC/);
+});
