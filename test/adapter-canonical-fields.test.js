@@ -1,4 +1,4 @@
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { normalizeProxy } from '../src/core/normalizeProxy.js';
 import { toXray } from '../src/core/adapters/xray.js';
