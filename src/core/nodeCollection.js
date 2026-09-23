@@ -3,7 +3,21 @@ import { validateProxyNode } from './validateProxyNode.js';
 
 export function createNodeFingerprint(node) {
     const normalized = normalizeProxy(node);
-    return stableSerialize(stripRuntimeFields(normalized));
+    const protocolOptions = { ...(normalized.protocolOptions || {}) };
+    if (protocolOptions.uuid !== undefined && protocolOptions.uuid === normalized.credentials?.uuid) {
+        delete protocolOptions.uuid;
+    }
+
+    return stableSerialize({
+        protocol: normalized.protocol,
+        endpoint: normalized.endpoint,
+        credentials: normalized.credentials,
+        tls: normalized.tls,
+        transport: normalized.transport,
+        obfs: normalized.obfs,
+        reality: normalized.reality,
+        protocolOptions
+    });
 }
 
 export function processNodeCollection(inputs = [], options = {}) {
