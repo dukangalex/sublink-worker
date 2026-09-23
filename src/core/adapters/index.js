@@ -143,7 +143,7 @@ const surgeConstraintsFor = () => [
 ];
 
 const surgeFeaturesFor = (protocol) => ({
-    tls: ['vmess','trojan','hysteria2','tuic','socks','http','anytls'].includes(protocol),
+    tls: ['vmess','trojan','hysteria2','tuic','socks','http','anytls','snell'].includes(protocol),
     'transport.ws': ['vmess','trojan'].includes(protocol),
     'transport.grpc': false,
     'transport.xhttp': false,
