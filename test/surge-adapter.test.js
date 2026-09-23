@@ -2,6 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { normalizeProxy } from '../src/core/normalizeProxy.js';
 import { toSurge } from '../src/core/adapters/surge.js';
+import '../src/core/adapters/index.js';
 
 test('converts VMess WebSocket TLS to a Surge proxy line', () => {
     const node = normalizeProxy({
