@@ -133,6 +133,39 @@ function extractFetchedValues(fetched) {
     return [];
 }
 
+export class KvSubscriptionStore {
+    constructor(kv, prefix = 'sub:') {
+        if (!kv || typeof kv.get !== 'function' || typeof kv.put !== 'function' || typeof kv.delete !== 'function') {
+            throw new Error('A compatible key-value store is required');
+        }
+        this.kv = kv;
+        this.prefix = prefix;
+    }
+
+    async create(input) {
+        const record = createSubscriptionRecord(input);
+        const key = this.prefix + record.token;
+        if (await this.kv.get(key)) {
+            throw new Error('Subscription token collision');
+        }
+        await this.kv.put(key, JSON.stringify(record));
+        return record;
+    }
+
+    async get(token) {
+        if (!isValidToken(token)) return null;
+        const value = await this.kv.get(this.prefix + token);
+        if (!value) return null;
+        return typeof value === 'string' ? JSON.parse(value) : value;
+    }
+
+    async delete(token) {
+        if (!isValidToken(token)) return false;
+        await this.kv.delete(this.prefix + token);
+        return true;
+    }
+}
+
 export class MemorySubscriptionStore {
     #records = new Map();
 
@@ -159,6 +192,16 @@ export class MemorySubscriptionStore {
     }
 }
 
-function createOpaqueToken(length = 16) {\n    if (!globalThis.crypto?.getRandomValues) {\n        throw new Error('A cryptographically secure random source is required to create subscription tokens');\n    }\n    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';\n    const bytes = new Uint8Array(length);\n    globalThis.crypto.getRandomValues(bytes);\n    return Array.from(bytes, byte => alphabet[byte & 63]).join('');\n}\n\nfunction isValidToken(token) {
+function createOpaqueToken(length = 16) {
+    if (!globalThis.crypto?.getRandomValues) {
+        throw new Error('A cryptographically secure random source is required to create subscription tokens');
+    }
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+    const bytes = new Uint8Array(length);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, byte => alphabet[byte & 63]).join('');
+}
+
+function isValidToken(token) {
     return typeof token === 'string' && /^[0-9A-Za-z_-]{12,64}$/.test(token);
 }
