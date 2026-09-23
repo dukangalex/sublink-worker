@@ -104,7 +104,7 @@ test('Xray does not expose a generic protocol option fallback', () => {
         protocol: 'unknown',
         endpoint: { host: 'example.com', port: 443 },
         protocolOptions: { internalOnly: 'must-not-leak' }
-    }), /No explicit Xray adapter mapping/);
+    }), /No adapter capability has been declared for this protocol\/target pair/);
 });
 
 
@@ -615,5 +615,5 @@ test('sing-box rejects canonical verification controls with no equivalent outbou
             'name-cert-verify': 'verify.example.com'
         }
     });
-    assert.throws(() => toSingBox(node), /sing-box does not expose an equivalent outbound field/);
+    assert.throws(() => toSingBox(node), /sing-box has no outbound equivalent for Mihomo name-cert-verify/);
 });
