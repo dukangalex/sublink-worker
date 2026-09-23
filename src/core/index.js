@@ -10,3 +10,6 @@ export { toClash } from './adapters/clash.js';
 export { toXray } from './adapters/xray.js';
 export { toSurge } from './adapters/surge.js';
 export { convertProxy, convertProxies } from './convertProxy.js';
+
+export { createSubscriptionInput, createSubscriptionRecord, createSubscriptionResolver } from './subscription.js';
+export { createSubscriptionToken, createSubscriptionPath, createSubscriptionUrl, isValidSubscriptionToken, MemorySubscriptionStore } from './subscriptionLink.js';
