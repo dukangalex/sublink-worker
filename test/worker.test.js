@@ -145,6 +145,83 @@ proxy-groups:
         }
     });
 
+    it('serves a subscription when at least one resolved node is valid', async () => {
+        const app = createTestApp({
+            config: { subscriptionAdminToken: 'test-admin-token' }
+        });
+        const valid = 'vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInRlc3QiLA0KICAiYWRkIjogIjEuMS4xLjEiLA0KICAicG9ydCI6ICI0NDMiLA0KICAiaWQiOiAiYWRkNjY2NjYtODg4OC04ODg4LTg4ODgtODg4ODg4ODg4ODg4IiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ3cyIsDQogICJ0eXBlIjogIm5vbmUiLA0KICAiaG9zdCI6ICIiLA0KICAicGF0aCI6ICIvaCIsDQogICJ0bHMiOiAidGxzIg0KfQ==';
+        const originalFetch = globalThis.fetch;
+        vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+            proxies: [{
+                name: 'invalid',
+                type: 'vless',
+                server: 'example.com',
+                server_port: 443
+            }, valid]
+        }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        })));
+
+        try {
+            const createRes = await app.request('https://subx.example/api/subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer test-admin-token',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target: 'clash',
+                    inputs: ['https://provider.example/subscription']
+                })
+            });
+            const created = await createRes.json();
+            const res = await app.request(created.url);
+            expect(res.status).toBe(200);
+            expect(await res.text()).toContain('proxies:');
+        } finally {
+            vi.stubGlobal('fetch', originalFetch);
+        }
+    });
+
+    it('returns 422 when all resolved subscription nodes are invalid', async () => {
+        const app = createTestApp({
+            config: { subscriptionAdminToken: 'test-admin-token' }
+        });
+        const originalFetch = globalThis.fetch;
+        vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+            proxies: [{
+                name: 'invalid',
+                type: 'vless',
+                server: 'example.com',
+                server_port: 443
+            }]
+        }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        })));
+
+        try {
+            const createRes = await app.request('https://subx.example/api/subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer test-admin-token',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target: 'clash',
+                    inputs: ['https://provider.example/subscription']
+                })
+            });
+            const created = await createRes.json();
+            const res = await app.request(created.url);
+            expect(res.status).toBe(422);
+            expect(await res.text()).toContain('no valid nodes');
+        } finally {
+            vi.stubGlobal('fetch', originalFetch);
+        }
+    });
+
     it('does not expose subscription records without the admin token', async () => {
         const app = createTestApp({
             config: {
