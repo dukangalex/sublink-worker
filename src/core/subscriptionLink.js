@@ -1,4 +1,4 @@
-import { createSubscriptionRecord, createSubscriptionInput, MemorySubscriptionStore } from './subscription.js';
+import { createSubscriptionRecord, createSubscriptionInput, createSubscriptionResolver, MemorySubscriptionStore } from './subscription.js';
 
 const TOKEN_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
 
@@ -44,4 +44,4 @@ export function isValidSubscriptionToken(token) {
     return typeof token === 'string' && /^[0-9A-Za-z_-]{12,64}$/.test(token);
 }
 
-export { createSubscriptionRecord, createSubscriptionInput, MemorySubscriptionStore };
+export { createSubscriptionRecord, createSubscriptionInput, createSubscriptionResolver, MemorySubscriptionStore };
