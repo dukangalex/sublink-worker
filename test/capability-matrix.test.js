@@ -134,6 +134,24 @@ describe('transport security compatibility constraints', () => {
         expect(result.supported).toBe(false);
         expect(result.reasons).toContain('Xray adapter requires Xray-specific ECH fields; canonical Mihomo/sing-box ECH cannot be mapped without changing semantics');
     });
+    it('rejects Mihomo ECH on sing-box', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: { serverName: 'example.com', ech: { enabled: true, config: 'BASE64' } }
+        }, 'singbox');
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('sing-box ECH uses its own configuration representation; canonical Mihomo ECH fields cannot be mapped without changing semantics');
+    });
+
+    it('rejects Mihomo name-cert-verify on sing-box', () => {
+        const result = explainConversion({
+            protocol: 'vless',
+            tls: { serverName: 'example.com', nameCertVerify: 'verify.example.com' }
+        }, 'singbox');
+        expect(result.supported).toBe(false);
+        expect(result.reasons).toContain('sing-box has no outbound equivalent for Mihomo name-cert-verify');
+    });
+
     it('rejects Mihomo TLS carrier fields on sing-box', () => {
         const result = explainConversion({
             protocol: 'vless',
