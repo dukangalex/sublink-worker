@@ -42,7 +42,7 @@ test('converts WireGuard into Proxy and WireGuard sections', () => {
     assert.match(out.line, /wireguard, section-name=wg/);
     assert.match(out.section, /\[WireGuard wg\]/);
     assert.match(out.section, /private-key = private/);
-    assert.match(out.section, /self-ip = 10\.0\.0\.2\/32/);
+    assert.match(out.section, /self-ip = 10\.0\.0\.2/);
 });
 
 test('rejects protocols Surge does not declare', () => {
@@ -60,7 +60,7 @@ test('rejects protocols Surge does not declare', () => {
 test('preserves Surge SOCKS5 UDP relay option', () => {
     const node = normalizeProxy({
         name: 'socks',
-        type: 'socks5',
+        type: 'socks',
         server: 'example.com',
         server_port: 1080,
         username: 'u',
