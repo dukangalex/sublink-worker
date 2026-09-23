@@ -18,7 +18,7 @@ test('node fingerprints are deterministic and ignore runtime ids', () => {
 
 test('collection removes duplicate nodes even when names differ', () => {
     const result = processNodeCollection([
-        vless('Zulu'),
+        vless('Zulu', 'z.example.com'),
         vless('Alpha'),
         vless('Duplicate'),
         vless('Same connection, other name')
