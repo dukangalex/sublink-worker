@@ -68,6 +68,11 @@ export function processNodeCollection(inputs = [], options = {}) {
 
             validation = validateProxyNode(node);
         }
+
+        if (Array.isArray(validation.warnings) && validation.warnings.length) {
+            warnings.push(...validation.warnings);
+        }
+
         if (!validation.valid) {
             if (filterInvalid) {
                 warnings.push({
