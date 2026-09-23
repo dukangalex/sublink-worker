@@ -1,3 +1,4 @@
+import './adapters/index.js';
 import { normalizeProxy } from './normalizeProxy.js';
 import { validateProxyNode } from './validateProxyNode.js';
 import { explainConversion } from './capabilityMatrix.js';
