@@ -12,7 +12,8 @@ import { SurgeConfigBuilder } from '../builders/SurgeConfigBuilder.js';
 import { createTranslator, resolveLanguage } from '../i18n/index.js';
 import { createSubscriptionRecord, createSubscriptionResolver, KvSubscriptionStore, MemorySubscriptionStore } from '../core/subscription.js';
 import { createSubscriptionToken, createSubscriptionUrl } from '../core/subscriptionLink.js';
-import { renderSubscription } from '../core/subscriptionRenderer.js';
+import { renderSubscriptionCollection } from '../core/subscriptionRenderer.js';
+import { processNodeCollection } from '../core/nodeCollection.js';
 import { parseAndNormalize } from '../core/parseAndNormalize.js';
 import { fetchSubscription } from '../parsers/subscription/httpSubscriptionFetcher.js';
 import { encodeBase64, tryDecodeSubscriptionLines } from '../utils.js';
@@ -115,12 +116,12 @@ export function createApp(bindings = {}) {
                 userAgent: c.req.header('User-Agent') || DEFAULT_USER_AGENT
             });
 
-            const nodes = resolved.filter(result => result?.node).map(result => result.node);
-            if (!nodes.length) {
+            const collection = processNodeCollection(resolved, record.options?.collection || {});
+            if (!collection.nodes.length) {
                 return c.text('Subscription contains no valid nodes', 422);
             }
 
-            const rendered = renderSubscription(nodes, record.target, record.options);
+            const rendered = renderSubscriptionCollection(collection, record.target, record.options);
             return c.text(rendered.body, 200, {
                 'Content-Type': rendered.contentType,
                 'Cache-Control': 'no-store'
